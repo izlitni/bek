@@ -179,20 +179,45 @@
             } catch(e) { return []; }
         }
 
+        // FIXED: Transfer function - uses tagged template literals instead of unsafe
         async function transferMoney(fromId, toUsername, amount, note) {
             try {
-                const toUser = (await sql`SELECT * FROM users WHERE username = ${toUsername}`)[0];
-                if (!toUser) return { success: false, message: 'Not found' };
-                const fromUser = (await sql`SELECT * FROM users WHERE id = ${fromId}`)[0];
-                if (!fromUser || fromUser.balance < parseFloat(amount)) return { success: false, message: 'Insufficient funds' };
+                const toUserArr = await sql`SELECT * FROM users WHERE username = ${toUsername}`;
+                if (!toUserArr || toUserArr.length === 0) return { success: false, message: 'Recipient not found' };
+                
+                const toUser = toUserArr[0];
+                const fromUserArr = await sql`SELECT * FROM users WHERE id = ${fromId}`;
+                if (!fromUserArr || fromUserArr.length === 0) return { success: false, message: 'Sender not found' };
+                
+                const fromUser = fromUserArr[0];
+                const numAmount = parseFloat(amount);
+                
+                if (parseFloat(fromUser.balance) < numAmount) return { success: false, message: 'Insufficient funds' };
                 if (fromId === toUser.id) return { success: false, message: 'Cannot transfer to self' };
 
-                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${fromId}, 'sent', 'Transfer to ${toUsername}: ${note}', ${amount}::decimal)`;
-                await sql`UPDATE users SET balance = balance - ${amount}::decimal WHERE id = ${fromId}`;
-                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${toUser.id}, 'received', 'Transfer from ${fromUser.username}: ${note}', ${amount}::decimal)`;
-                await sql`UPDATE users SET balance = balance + ${amount}::decimal WHERE id = ${toUser.id}`;
+                // Insert sent transaction
+                await sql`
+                    INSERT INTO transactions (user_id, type, description, amount)
+                    VALUES (${fromId}, 'sent', 'Transfer to ${toUsername}: ${note}', ${numAmount})
+                `;
+                
+                // Deduct from sender
+                await sql`UPDATE users SET balance = balance - ${numAmount} WHERE id = ${fromId}`;
+
+                // Insert received transaction
+                await sql`
+                    INSERT INTO transactions (user_id, type, description, amount)
+                    VALUES (${toUser.id}, 'received', 'Transfer from ${fromUser.username}: ${note}', ${numAmount})
+                `;
+                
+                // Add to receiver
+                await sql`UPDATE users SET balance = balance + ${numAmount} WHERE id = ${toUser.id}`;
+
                 return { success: true };
-            } catch(e) { return { success: false, message: e.message }; }
+            } catch(e) { 
+                console.error('Transfer error:', e);
+                return { success: false, message: e.message }; 
+            }
         }
 
         // UI
@@ -237,25 +262,34 @@
         function renderTxns(txns) {
             const tbody = document.getElementById('transactionBody');
             if (!txns.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-10" style="color:var(--text-muted)">No transactions</td></tr>'; return; }
-            tbody.innerHTML = txns.slice().reverse().map(t => `<tr>
-                <td>${new Date(t.date).toLocaleDateString()}</td>
-                <td><span class="badge ${t.type.includes('deposit')||t.type==='received'?'badge-success':'badge-danger'}">${t.type}</span></td>
-                <td>${t.description}</td>
-                <td class="text-right tabular-nums font-semibold ${t.type.includes('deposit')||t.type==='received'?'amount-positive':'amount-negative'}">${t.type.includes('deposit')||t.type==='received'?'+':'-'}$${t.amount.toFixed(2)}</td>
-            </tr>`).join('');
+            tbody.innerHTML = txns.slice().reverse().map(t => `
+                <tr>
+                    <td>${new Date(t.date).toLocaleDateString()}</td>
+                    <td><span class="badge ${t.type.includes('deposit')||t.type==='received'?'badge-success':'badge-danger'}">${t.type}</span></td>
+                    <td>${t.description}</td>
+                    <td class="text-right tabular-nums font-semibold ${t.type.includes('deposit')||t.type==='received'?'amount-positive':'amount-negative'}">${t.type.includes('deposit')||t.type==='received'?'+':'-'}$${t.amount.toFixed(2)}</td>
+                </tr>
+            `).join('');
         }
 
         // Transfer form
         document.getElementById('transferForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const r = await transferMoney(currentUser.id, document.getElementById('transferTo').value, document.getElementById('transferAmount').value, document.getElementById('transferNote').value || 'Transfer');
+            
+            const toUsername = document.getElementById('transferTo').value;
+            const amount = document.getElementById('transferAmount').value;
+            const note = document.getElementById('transferNote').value || 'Transfer';
+            
+            showToast('Processing...', 'info');
+            const r = await transferMoney(currentUser.id, toUsername, amount, note);
+            
             if (r.success) {
                 showToast('Transfer successful!', 'success');
                 closeModalById('transferModal');
                 e.target.reset();
                 await loadDashboard();
             } else {
-                showToast(r.message || 'Failed', 'error');
+                showToast(r.message || 'Transfer failed', 'error');
             }
         });
 
