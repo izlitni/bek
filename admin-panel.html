@@ -107,7 +107,7 @@
         </div>
     </main>
 
-    <!-- Modals -->
+    <!-- Add User Modal -->
     <div id="addUserModal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content card p-6" onclick="event.stopPropagation()">
             <div class="flex items-center justify-between mb-6">
@@ -124,6 +124,7 @@
         </div>
     </div>
 
+    <!-- Edit User Modal -->
     <div id="editUserModal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content card p-6" onclick="event.stopPropagation()">
             <div class="flex items-center justify-between mb-6">
@@ -137,13 +138,14 @@
                 <div><label class="block text-sm font-semibold mb-2">Balance ($)</label><input type="number" id="editBalance" class="input-field w-full px-4 py-3" step="0.01" required></div>
                 <div><label class="block text-sm font-semibold mb-2">New Password (blank = keep)</label><input type="password" id="editPassword" class="input-field w-full px-4 py-3"></div>
                 <div class="flex gap-3">
-                    <button type="submit" class="btn-primary flex-1 py-3 font-medium">Save</button>
+                    <button type="submit" class="btn-primary flex-1 py-3 font-medium">Save Changes</button>
                     <button type="button" onclick="closeModalById('editUserModal')" class="btn-secondary flex-1 py-3 font-medium">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Delete Modal -->
     <div id="deleteModal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content card p-6" onclick="event.stopPropagation()" class="text-center">
             <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background:#fee2e2"><svg class="w-8 h-8" style="color:var(--danger)" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></div>
@@ -157,6 +159,7 @@
         </div>
     </div>
 
+    <!-- Send Money Modal -->
     <div id="sendMoneyModal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content card p-6" onclick="event.stopPropagation()">
             <div class="flex items-center justify-between mb-6">
@@ -191,14 +194,16 @@
 
         // DB helpers
         async function getUsers() {
-            try { const r = await sql`SELECT * FROM users ORDER BY id`; return r.map(row => ({...row, balance:parseFloat(row.balance)})); }
-            catch(e) { console.error(e); return []; }
+            try { 
+                const r = await sql`SELECT * FROM users ORDER BY id`; 
+                return r.map(row => ({...row, balance: parseFloat(row.balance)})); 
+            } catch(e) { console.error(e); return []; }
         }
 
         async function getStats() {
             try {
                 const uc = await sql`SELECT COUNT(*)::int as c FROM users`;
-                const tb = await sql`SELECT COALESCE(SUM(balance),0)::decimal as t FROM users`;
+                const tb = await sql`SELECT COALESCE(SUM(balance), 0)::decimal as t FROM users`;
                 const tc = await sql`SELECT COUNT(*)::int as c FROM transactions`;
                 const today = new Date().toISOString().split('T')[0];
                 const at = await sql`SELECT COUNT(DISTINCT user_id)::int as c FROM transactions WHERE created_at >= ${today}::date`;
@@ -213,35 +218,70 @@
             } catch(e) { return []; }
         }
 
+        // FIXED: Uses tagged template literals for proper type handling
         async function addUser(name, username, balance, password) {
             try {
-                await sql`INSERT INTO users (name, username, password_hash, balance) VALUES (${name}, ${username}, ${hashPassword(password)}, ${balance}::decimal)`;
+                await sql`
+                    INSERT INTO users (name, username, password_hash, balance) 
+                    VALUES (${name}, ${username}, ${hashPassword(password)}, ${balance}::numeric(15,2))
+                `;
                 return { success: true };
             } catch(e) { return { success: false, message: e.message }; }
         }
 
+        // FIXED: Update user with proper type casting
         async function updateUser(id, updates) {
             try {
-                let parts=[], vals=[];
-                if(updates.name!==undefined){parts.push(`name=$${vals.length+1}`);vals.push(updates.name);}
-                if(updates.username!==undefined){parts.push(`username=$${vals.length+1}`);vals.push(updates.username);}
-                if(updates.balance!==undefined){parts.push(`balance=$${vals.length+1}::decimal`);vals.push(updates.balance.toString());}
-                if(updates.password && updates.password.length>0){parts.push(`password_hash=$${vals.length+1}`);vals.push(hashPassword(updates.password));}
-                vals.push(String(id));
-                await sql.unsafe(`UPDATE users SET ${parts.join(',')} WHERE id=$${vals.length}`, vals);
-                return { success:true };
-            } catch(e) { return { success:false, message:e.message }; }
+                const current = (await sql`SELECT * FROM users WHERE id = ${id}`)[0];
+                if (!current) return { success: false, message: 'User not found' };
+
+                let newName = updates.name !== undefined ? updates.name : current.name;
+                let newUsername = updates.username !== undefined ? updates.username : current.username;
+                let newBalance = updates.balance !== undefined ? parseFloat(updates.balance) : parseFloat(current.balance);
+
+                if (updates.password && updates.password.length > 0) {
+                    const newHash = hashPassword(updates.password);
+                    await sql`
+                        UPDATE users 
+                        SET name = ${newName}, 
+                            username = ${newUsername}, 
+                            password_hash = ${newHash},
+                            balance = ${newBalance}::numeric(15,2)
+                        WHERE id = ${id}
+                    `;
+                } else {
+                    await sql`
+                        UPDATE users 
+                        SET name = ${newName}, 
+                            username = ${newUsername}, 
+                            balance = ${newBalance}::numeric(15,2)
+                        WHERE id = ${id}
+                    `;
+                }
+
+                return { success: true };
+            } catch(e) { 
+                console.error('Update error:', e);
+                return { success: false, message: e.message }; 
+            }
         }
 
         async function deleteUser(id) {
-            try { await sql`DELETE FROM transactions WHERE user_id=${id}`; await sql`DELETE FROM users WHERE id=${id}`; return { success:true }; }
-            catch(e) { return { success:false, message:e.message }; }
+            try { 
+                await sql`DELETE FROM transactions WHERE user_id=${id}`; 
+                await sql`DELETE FROM users WHERE id=${id}`; 
+                return { success: true }; 
+            } catch(e) { return { success:false, message:e.message }; }
         }
 
         async function addAdjustment(userId, amount, note) {
             try {
-                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${userId}, 'adjustment', ${note}, ${amount}::decimal)`;
-                await sql`UPDATE users SET balance = balance + ${amount}::decimal WHERE id=${userId}`;
+                const numAmt = parseFloat(amount);
+                await sql`
+                    INSERT INTO transactions (user_id, type, description, amount) 
+                    VALUES (${userId}, 'adjustment', ${note}, ${numAmt}::numeric(15,2))
+                `;
+                await sql`UPDATE users SET balance = balance + ${numAmt}::numeric(15,2) WHERE id=${userId}`;
                 return { success:true };
             } catch(e) { return { success:false, message:e.message }; }
         }
@@ -264,7 +304,7 @@
         window.exportDB=exportDB;
 
         // Render table
-        async function renderTable() {
+        async function renderTable(){
             const search=(document.getElementById('searchUsers').value||'').toLowerCase();
             let users=await getUsers();
             if(search) users=users.filter(u=>u.name.toLowerCase().includes(search)||u.username.toLowerCase().includes(search));
@@ -335,10 +375,14 @@
 
         async function confirmDelete(){
             const id=document.getElementById('deleteUserId').value;
-            await deleteUser(id);
-            showToast('User deleted','success');
-            closeModalById('deleteModal');
-            await loadPanel();
+            const result = await deleteUser(id);
+            if(result.success){
+                showToast('User deleted','success');
+                closeModalById('deleteModal');
+                await loadPanel();
+            } else {
+                showToast(result.message || 'Delete failed','error');
+            }
         }
 
         async function exportDB(){
@@ -365,14 +409,30 @@
 
         document.getElementById('editUserForm').addEventListener('submit',async(e)=>{
             e.preventDefault();
-            const r=await updateUser(document.getElementById('editUserId').value,{
-                name:document.getElementById('editName').value.trim(),
-                username:document.getElementById('editUsername').value.trim(),
-                balance:parseFloat(document.getElementById('editBalance').value),
-                password:document.getElementById('editPassword').value
-            });
-            if(r.success){showToast('Updated!','success');closeModalById('editUserModal');await loadPanel();}
-            else{showToast(r.message||'Failed','error');}
+            
+            const id = document.getElementById('editUserId').value;
+            const updates = {
+                name: document.getElementById('editName').value.trim(),
+                username: document.getElementById('editUsername').value.trim(),
+                balance: parseFloat(document.getElementById('editBalance').value),
+                password: document.getElementById('editPassword').value
+            };
+
+            // Validate
+            if(!updates.name || !updates.username || isNaN(updates.balance)){
+                showToast('Please fill all fields correctly','error');
+                return;
+            }
+
+            const result = await updateUser(id, updates);
+            
+            if(result.success){
+                showToast('User updated successfully!','success');
+                closeModalById('editUserModal');
+                await loadPanel(); // Refresh table to show changes
+            } else {
+                showToast(result.message || 'Update failed','error');
+            }
         });
 
         document.getElementById('sendMoneyForm').addEventListener('submit',async(e)=>{
@@ -397,7 +457,7 @@
             await renderTxns();
         }
 
-        // Expose
+        // Expose functions
         window.editUserFunc=editUserFunc;
         window.sendMoneyFunc=sendMoneyFunc;
         window.deleteUserFunc=deleteUserFunc;
