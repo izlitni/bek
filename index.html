@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEK - Banket el Kes7in</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script type="module">
+        import { neon } from 'https://esm.sh/@neondatabase/serverless';
+        window.neonSql = neon;
+        
+        // Initialize DB connection
+        const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
+        window.dbSql = sql;
+    </script>
+
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --accent: #2563eb;
+            --accent-bg: #eff6ff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
+        body { background-color: var(--bg-primary); color: var(--text-primary); min-height: 100vh; margin: 0; line-height: 1.6; }
+
+        .card { background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.03); }
+        .card-elevated { box-shadow: 0 4px 20px rgba(37,99,235,0.08), 0 1px 3px rgba(0,0,0,0.04); }
+
+        .input-field { background-color: var(--bg-secondary); border: 1.5px solid var(--border); color: var(--text-primary); transition: all 0.2s ease; border-radius: 10px; }
+        .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+        .input-field::placeholder { color: var(--text-muted); }
+
+        .btn-primary { background-color: var(--accent); color: white; font-weight: 600; border-radius: 10px; transition: all 0.2s ease; border: none; cursor: pointer; }
+        .btn-primary:hover { background-color: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
+        .btn-danger { background-color: var(--danger); color: white; font-weight: 600; border-radius: 10px; transition: all 0.2s ease; border: none; cursor: pointer; }
+        .btn-danger:hover { background-color: #dc2626; box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
+        .btn-secondary { background-color: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); font-weight: 500; border-radius: 10px; cursor: pointer; }
+        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); background-color: var(--accent-bg); }
+        .btn-icon { padding: 8px; border-radius: 8px; transition: all 0.15s ease; color: var(--text-muted); background: none; border: none; cursor: pointer; }
+        .btn-icon:hover { background-color: var(--bg-tertiary); color: var(--accent); }
+
+        .login-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 50%, #e0e7ff 100%); }
+        .grid-pattern { width: 100%; height: 100%; background-image: radial-gradient(circle at 1px 1px, rgba(37,99,235,0.08) 1px, transparent 0); background-size: 32px 32px; }
+        .floating-shape { position: absolute; border-radius: 50%; opacity: 0.6; }
+        .shape-1 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%); top: -150px; right: -100px; }
+        .shape-2 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%); bottom: -120px; left: -80px; }
+
+        .page { display: none; animation: fadeSlideIn 0.3s ease-out; }
+        .page.active { display: block; }
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        .logo-box { width: 56px; height: 56px; background-color: var(--accent-bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+        .logo-box svg { color: var(--accent); }
+
+        button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        @media (max-width: 640px) { .card { margin: 12px; border-radius: 14px; } }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+    </style>
+</head>
+<body>
+    <div class="login-bg"><div class="grid-pattern"></div><div class="floating-shape shape-1"></div><div class="floating-shape shape-2"></div></div>
+
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="page active">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="card card-elevated p-8 w-full max-w-md">
+                <div class="text-center mb-8">
+                    <div class="logo-box mx-auto mb-5">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-3xl font-bold tracking-tight">BEK</h1>
+                    <p class="text-sm mt-1" style="color: var(--text-secondary)">Banket el Kes7in</p>
+                </div>
+
+                <form id="loginForm" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Username</label>
+                        <input type="text" id="username" class="input-field w-full px-4 py-3" placeholder="Enter username" required autocomplete="username">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Password</label>
+                        <div class="relative">
+                            <input type="password" id="password" class="input-field w-full px-4 py-3 pr-12" placeholder="Enter password" required autocomplete="current-password">
+                            <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 btn-icon" aria-label="Toggle password">
+                                <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary w-full py-3 text-base">Sign In</button>
+                </form>
+
+                <div class="mt-6 text-center pt-5 border-t" style="border-color: var(--border)">
+                    <p class="text-sm" style="color: var(--text-secondary)">Don't have an account? <button type="button" onclick="showPage('registerPage')" style="color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600;" class="hover:underline">Register Now</button></p>
+                </div>
+
+                <div class="mt-6 flex items-center justify-center gap-2 text-xs" style="color: var(--text-muted)">
+                    <svg class="w-4 h-4" style="color: var(--success)" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    Secure Banking Platform
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REGISTER PAGE -->
+    <div id="registerPage" class="page">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="card card-elevated p-8 w-full max-w-md">
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl font-bold tracking-tight">Create Account</h1>
+                    <p class="text-sm mt-2" style="color: var(--text-secondary)">Join BEK today</p>
+                </div>
+
+                <form id="registerForm" class="space-y-5">
+                    <div><label class="block text-sm font-semibold mb-2">Full Name</label><input type="text" id="regName" class="input-field w-full px-4 py-3" placeholder="John Doe" required></div>
+                    <div><label class="block text-sm font-semibold mb-2">Username</label><input type="text" id="regUsername" class="input-field w-full px-4 py-3" placeholder="Choose username" required></div>
+                    <div><label class="block text-sm font-semibold mb-2">Initial Deposit ($)</label><input type="number" id="regBalance" class="input-field w-full px-4 py-3" value="1000" min="0" step="0.01"></div>
+                    <div><label class="block text-sm font-semibold mb-2">Password</label><input type="password" id="regPassword" class="input-field w-full px-4 py-3" placeholder="Create password" required minlength="4"></div>
+                    <button type="submit" class="btn-primary w-full py-3 text-base">Create Account</button>
+                </form>
+
+                <div class="mt-6 text-center pt-5 border-t" style="border-color: var(--border)">
+                    <p class="text-sm" style="color: var(--text-secondary)">Already have an account? <button type="button" onclick="showPage('loginPage')" style="color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600;" class="hover:underline">Sign In</button></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { neon } from 'https://esm.sh/@neondatabase/serverless';
+        const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
+
+        // Hash function
+        function hashPassword(input) {
+            let h = 0;
+            input = input.toUpperCase().replace(/[^A-Z]/g, '');
+            for (let i = 0; i < input.length; i++) h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
+            return h.toString().padStart(7, '0');
+        }
+
+        // DB operations
+        async function verifyUser(username, password) {
+            try {
+                const r = await sql`SELECT * FROM users WHERE username = ${username} AND password_hash = ${hashPassword(password)}`;
+                if (r.length > 0) return { ...r[0], balance: parseFloat(r[0].balance) };
+                return null;
+            } catch(e) { console.error(e); return null; }
+        }
+
+        async function registerUser(name, username, balance, password) {
+            try {
+                const r = await sql`INSERT INTO users (name, username, password_hash, balance) VALUES (${name}, ${username}, ${hashPassword(password)}, ${balance}::decimal) RETURNING *`;
+                if (r.length > 0) return { success: true };
+                return { success: false, message: 'Failed' };
+            } catch(e) {
+                if (e.message?.includes('unique')) return { success: false, message: 'Username exists' };
+                return { success: false, message: e.message };
+            }
+        }
+
+        // UI Functions
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function showToast(msg, type = 'info') {
+            const c = document.createElement('div');
+            c.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;padding:14px 20px;border-radius:12px;font-weight:500;background:#fff;border-left:4px solid ' + (type==='success'?'#10b981':type==='error'?'#ef4444':'#2563eb') + ';box-shadow:0 4px 20px rgba(0,0,0,0.1);animation:slideIn 0.25s ease-out;';
+            c.textContent = msg;
+            document.body.appendChild(c);
+            setTimeout(() => { c.style.opacity = '0'; setTimeout(() => c.remove(), 250); }, 3000);
+        }
+
+        function togglePassword() {
+            const inp = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            icon.innerHTML = inp.type === 'text' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>' : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+        }
+
+        // Expose to window
+        window.showPage = showPage;
+
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = await verifyUser(document.getElementById('username').value.trim(), document.getElementById('password').value);
+            if (user) {
+                sessionStorage.setItem('bek_user', JSON.stringify(user));
+                showToast('Welcome back!', 'success');
+                setTimeout(() => window.location.href = 'dashboard.html', 500);
+            } else {
+                showToast('Invalid credentials', 'error');
+            }
+        });
+
+        // Register form
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const r = await registerUser(
+                document.getElementById('regName').value.trim(),
+                document.getElementById('regUsername').value.trim(),
+                document.getElementById('regBalance').value,
+                document.getElementById('regPassword').value
+            );
+            if (r.success) {
+                showToast('Account created! Please login.', 'success');
+                showPage('loginPage');
+                e.target.reset();
+            } else {
+                showToast(r.message || 'Registration failed', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

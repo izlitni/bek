@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEK - Admin Access</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f8fafc; --bg-secondary: #ffffff; --bg-tertiary: #f1f5f9;
+            --accent: #2563eb; --accent-bg: #eff6ff;
+            --text-primary: #0f172a; --text-secondary: #64748b; --text-muted: #94a3b8;
+            --border: #e2e8f0; --danger: #ef4444;
+        }
+        * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
+        body { background: linear-gradient(135deg,#fef2f2 0%,#fff7ed 50%,#fefce8 100%); color: var(--text-primary); min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 4px 20px rgba(239,68,68,0.08); max-width: 420px; width: 100%; }
+        .input-field { background: var(--bg-secondary); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text-primary); transition: all 0.2s; }
+        .input-field:focus { outline: none; border-color: var(--danger); box-shadow: 0 0 0 4px rgba(239,68,54,0.1); }
+        .btn-danger { background: var(--danger); color: white; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; padding: 12px; width: 100%; }
+        .btn-danger:hover { background: #dc2626; box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
+        .btn-secondary { background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); border-radius: 10px; cursor: pointer; padding: 12px; width: 100%; text-align: center; }
+        .btn-secondary:hover { border-color: var(--danger); color: var(--danger); }
+        .logo-box { width: 56px; height: 56px; background: #fee2e2; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+        .logo-box svg { color: var(--danger); }
+        button:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
+        .toast { position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 14px 20px; border-radius: 12px; background: #fff; border-left: 4px solid var(--danger); box-shadow: 0 4px 20px rgba(0,0,0,0.1); animation: slideIn 0.25s; }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="card p-8">
+        <div class="logo-box">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <h1 class="text-2xl font-bold text-center tracking-tight">BEK Admin</h1>
+        <p class="text-sm text-center mb-8" style="color: var(--text-secondary)">Banket el Kes7in - Restricted Area</p>
+
+        <form id="adminLoginForm" class="space-y-5">
+            <div><label class="block text-sm font-semibold mb-2">Admin Username</label><input type="text" id="adminUser" class="input-field w-full px-4 py-3" placeholder="admin" required></div>
+            <div><label class="block text-sm font-semibold mb-2">Admin Password</label><input type="password" id="adminPass" class="input-field w-full px-4 py-3" placeholder="Enter password" required></div>
+            <button type="submit" class="btn-danger">Access Panel</button>
+        </form>
+
+        <div class="mt-6 text-center pt-5 border-t" style="border-color: var(--border)">
+            <button onclick="window.location.href='index.html'" class="btn-secondary" style="display:inline-block;width:auto;padding:10px 24px;">Back to BEK</button>
+        </div>
+    </div>
+
+    <div id="toastContainer"></div>
+
+    <script type="module">
+        import { neon } from 'https://esm.sh/@neondatabase/serverless';
+        const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
+
+        function hashPassword(input) {
+            let h = 0;
+            input = input.toUpperCase().replace(/[^A-Z]/g, '');
+            for (let i = 0; i < input.length; i++) h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
+            return h.toString().padStart(7, '0');
+        }
+
+        function showToast(msg) {
+            const c = document.createElement('div');
+            c.className = 'toast';
+            c.textContent = msg;
+            document.getElementById('toastContainer').appendChild(c);
+            setTimeout(() => { c.style.opacity = '0'; setTimeout(() => c.remove(), 250); }, 3000);
+        }
+
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const r = await sql`SELECT * FROM admin WHERE username = ${document.getElementById('adminUser').value.trim()} AND password_hash = ${hashPassword(document.getElementById('adminPass').value)}`;
+            if (r.length > 0) {
+                sessionStorage.setItem('bek_admin', 'true');
+                showToast('Access granted!');
+                setTimeout(() => window.location.href = 'admin-panel.html', 500);
+            } else {
+                showToast('Invalid credentials');
+            }
+        });
+    </script>
+</body>
+</html>
