@@ -6,7 +6,6 @@
     <title>BEK - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
     <style>
         :root {
             --bg-primary: #f8fafc; --bg-secondary: #ffffff; --bg-tertiary: #f1f5f9;
@@ -21,9 +20,9 @@
         .card-elevated { box-shadow: 0 4px 20px rgba(37,99,235,0.08); }
         .input-field { background: var(--bg-secondary); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text-primary); transition: all 0.2s; }
         .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
-        .btn-primary { background: var(--accent); color: white; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: var(--accent); color: white; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; padding: 10px 20px; }
         .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
-        .btn-secondary { background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); border-radius: 10px; cursor: pointer; }
+        .btn-secondary { background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); border-radius: 10px; cursor: pointer; padding: 10px 20px; }
         .btn-secondary:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
         .btn-icon { padding: 8px; border-radius: 8px; background: none; border: none; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
         .btn-icon:hover { background: var(--bg-tertiary); color: var(--accent); }
@@ -126,9 +125,18 @@
                 <button onclick="closeModalById('transferModal')" class="btn-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
             <form id="transferForm" class="space-y-5">
-                <div><label class="block text-sm font-semibold mb-2">Recipient</label><select id="transferTo" class="input-field w-full px-4 py-3" required><option value="">Select...</option></select></div>
-                <div><label class="block text-sm font-semibold mb-2">Amount ($)</label><input type="number" id="transferAmount" class="input-field w-full px-4 py-3" min="0.01" step="0.01" required></div>
-                <div><label class="block text-sm font-semibold mb-2">Note</label><input type="text" id="transferNote" class="input-field w-full px-4 py-3" placeholder="Optional"></div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Recipient</label>
+                    <select id="transferTo" class="input-field w-full px-4 py-3" required><option value="">Select...</option></select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Amount ($)</label>
+                    <input type="number" id="transferAmount" class="input-field w-full px-4 py-3" min="0.01" step="0.01" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Note</label>
+                    <input type="text" id="transferNote" class="input-field w-full px-4 py-3" placeholder="Optional">
+                </div>
                 <button type="submit" class="btn-primary w-full py-3 font-medium">Send Money</button>
             </form>
         </div>
@@ -138,12 +146,15 @@
 
     <script type="module">
         import { neon } from 'https://esm.sh/@neondatabase/serverless';
+        
         const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
 
         function hashPassword(input) {
             let h = 0;
             input = input.toUpperCase().replace(/[^A-Z]/g, '');
-            for (let i = 0; i < input.length; i++) h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
+            for (let i = 0; i < input.length; i++) {
+                h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
+            }
             return h.toString().padStart(7, '0');
         }
 
@@ -151,7 +162,9 @@
 
         // Auth check
         const saved = sessionStorage.getItem('bek_user');
-        if (!saved) { window.location.href = 'index.html'; }
+        if (!saved) { 
+            window.location.href = 'index.html'; 
+        }
         currentUser = JSON.parse(saved);
 
         // Refresh user from DB
@@ -179,39 +192,77 @@
             } catch(e) { return []; }
         }
 
-        // FIXED: Transfer function - uses tagged template literals instead of unsafe
+        // FIXED TRANSFER FUNCTION - Uses explicit ::numeric casting
         async function transferMoney(fromId, toUsername, amount, note) {
             try {
-                const toUserArr = await sql`SELECT * FROM users WHERE username = ${toUsername}`;
-                if (!toUserArr || toUserArr.length === 0) return { success: false, message: 'Recipient not found' };
+                // Step 1: Get recipient
+                const toUserArr = await sql`
+                    SELECT * FROM users 
+                    WHERE username = ${toUsername}
+                `;
+                
+                if (!toUserArr || toUserArr.length === 0) {
+                    return { success: false, message: 'Recipient not found' };
+                }
                 
                 const toUser = toUserArr[0];
-                const fromUserArr = await sql`SELECT * FROM users WHERE id = ${fromId}`;
-                if (!fromUserArr || fromUserArr.length === 0) return { success: false, message: 'Sender not found' };
+                
+                // Step 2: Get sender and validate balance
+                const fromUserArr = await sql`
+                    SELECT * FROM users 
+                    WHERE id = ${fromId}
+                `;
+                
+                if (!fromUserArr || fromUserArr.length === 0) {
+                    return { success: false, message: 'Sender not found' };
+                }
                 
                 const fromUser = fromUserArr[0];
                 const numAmount = parseFloat(amount);
                 
-                if (parseFloat(fromUser.balance) < numAmount) return { success: false, message: 'Insufficient funds' };
-                if (fromId === toUser.id) return { success: false, message: 'Cannot transfer to self' };
+                if (parseFloat(fromUser.balance) < numAmount) {
+                    return { success: false, message: 'Insufficient funds' };
+                }
+                
+                if (fromId === toUser.id) {
+                    return { success: false, message: 'Cannot transfer to self' };
+                }
 
-                // Insert sent transaction
+                // Step 3: Insert sent transaction with EXPLICIT type casting
                 await sql`
                     INSERT INTO transactions (user_id, type, description, amount)
-                    VALUES (${fromId}, 'sent', 'Transfer to ${toUsername}: ${note}', ${numAmount})
+                    VALUES (
+                        ${fromId}, 
+                        'sent', 
+                        ${'Transfer to ' + toUser.username + ': ' + note},
+                        ${numAmount}::numeric(15,2)
+                    )
                 `;
                 
-                // Deduct from sender
-                await sql`UPDATE users SET balance = balance - ${numAmount} WHERE id = ${fromId}`;
+                // Step 4: Deduct from sender
+                await sql`
+                    UPDATE users 
+                    SET balance = balance - ${numAmount}::numeric(15,2)
+                    WHERE id = ${fromId}
+                `;
 
-                // Insert received transaction
+                // Step 5: Insert received transaction
                 await sql`
                     INSERT INTO transactions (user_id, type, description, amount)
-                    VALUES (${toUser.id}, 'received', 'Transfer from ${fromUser.username}: ${note}', ${numAmount})
+                    VALUES (
+                        ${toUser.id}, 
+                        'received',
+                        ${'Transfer from ' + fromUser.username + ': ' + note},
+                        ${numAmount}::numeric(15,2)
+                    )
                 `;
-                
-                // Add to receiver
-                await sql`UPDATE users SET balance = balance + ${numAmount} WHERE id = ${toUser.id}`;
+
+                // Step 6: Add to receiver
+                await sql`
+                    UPDATE users 
+                    SET balance = balance + ${numAmount}::numeric(15,2)
+                    WHERE id = ${toUser.id}
+                `;
 
                 return { success: true };
             } catch(e) { 
@@ -220,7 +271,7 @@
             }
         }
 
-        // UI
+        // UI Functions
         function showToast(msg, type = 'info') {
             const c = document.createElement('div');
             c.className = `toast toast-${type}`;
@@ -229,11 +280,28 @@
             setTimeout(() => { c.style.opacity = '0'; setTimeout(() => c.remove(), 250); }, 3000);
         }
 
-        function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
-        function closeModalById(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = ''; }
-        function closeModal(e) { if (!e || e.target === e.currentTarget) { e.currentTarget.classList.remove('active'); document.body.style.overflow = ''; } }
+        function openModal(id) { 
+            document.getElementById(id).classList.add('active'); 
+            document.body.style.overflow = 'hidden'; 
+        }
+        
+        function closeModalById(id) { 
+            document.getElementById(id).classList.remove('active'); 
+            document.body.style.overflow = ''; 
+        }
+        
+        function closeModal(e) { 
+            if (!e || e.target === e.currentTarget) { 
+                e.currentTarget.classList.remove('active'); 
+                document.body.style.overflow = ''; 
+            } 
+        }
 
-        function logout() { sessionStorage.removeItem('bek_user'); window.location.href = 'index.html'; }
+        function logout() { 
+            sessionStorage.removeItem('bek_user'); 
+            window.location.href = 'index.html'; 
+        }
+        
         window.logout = logout;
         window.openModal = openModal;
         window.closeModalById = closeModalById;
@@ -241,13 +309,19 @@
         // Load dashboard
         async function loadDashboard() {
             await refreshUser();
+            
             document.getElementById('welcomeUser').textContent = `Hello, ${currentUser.name}`;
             document.getElementById('userBalance').textContent = `$${currentUser.balance.toLocaleString('en-US', {minimumFractionDigits:2})}`;
             document.getElementById('userAccountNum').textContent = `Account: BEK-${String(currentUser.id).padStart(8,'0')}`;
 
             const txns = await getUserTxns(currentUser.id);
             let dep = 0, wd = 0;
-            txns.forEach(t => { if (t.type === 'deposit' || t.type === 'received') dep += t.amount; else wd += t.amount; });
+            
+            txns.forEach(t => { 
+                if (t.type === 'deposit' || t.type === 'received') dep += t.amount; 
+                else wd += t.amount; 
+            });
+            
             document.getElementById('totalDeposits').textContent = `$${dep.toLocaleString('en-US',{minimumFractionDigits:2})}`;
             document.getElementById('totalWithdrawals').textContent = `$${wd.toLocaleString('en-US',{minimumFractionDigits:2})}`;
             document.getElementById('transactionCount').textContent = txns.length;
@@ -256,12 +330,18 @@
 
             // Populate transfer dropdown
             const users = await getAllUsers();
-            document.getElementById('transferTo').innerHTML = '<option value="">Select...</option>' + users.map(u => `<option value="${u.username}">${u.name}</option>`).join('');
+            document.getElementById('transferTo').innerHTML = '<option value="">Select...</option>' + 
+                users.map(u => `<option value="${u.username}">${u.name}</option>`).join('');
         }
 
         function renderTxns(txns) {
             const tbody = document.getElementById('transactionBody');
-            if (!txns.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-10" style="color:var(--text-muted)">No transactions</td></tr>'; return; }
+            
+            if (!txns || !txns.length) { 
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-10" style="color:var(--text-muted)">No transactions</td></tr>'; 
+                return; 
+            }
+            
             tbody.innerHTML = txns.slice().reverse().map(t => `
                 <tr>
                     <td>${new Date(t.date).toLocaleDateString()}</td>
@@ -272,7 +352,7 @@
             `).join('');
         }
 
-        // Transfer form
+        // Transfer form handler
         document.getElementById('transferForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -280,8 +360,30 @@
             const amount = document.getElementById('transferAmount').value;
             const note = document.getElementById('transferNote').value || 'Transfer';
             
-            showToast('Processing...', 'info');
-            const r = await transferMoney(currentUser.id, toUsername, amount, note);
+            // Validate inputs first
+            if (!toUsername) {
+                showToast('Please select a recipient', 'error');
+                return;
+            }
+            
+            if (!amount || isNaN(parseFloat(amount)) {
+                showToast('Please enter a valid amount', 'error');
+                return;
+            }
+            
+            if (parseFloat(amount) <= 0) {
+                showToast('Amount must be greater than zero', 'error');
+                return;
+            }
+            
+            showToast('Processing transfer...', 'info');
+            
+            const r = await transferMoney(
+                currentUser.id, 
+                toUsername, 
+                amount, 
+                note
+            );
             
             if (r.success) {
                 showToast('Transfer successful!', 'success');
@@ -293,10 +395,14 @@
             }
         });
 
-        // Init
+        // Initialize
         await loadDashboard();
 
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active')); });
+        document.addEventListener('keydown', e => { 
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+            } 
+        });
     </script>
 </body>
 </html>
