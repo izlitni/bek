@@ -272,9 +272,15 @@
         async function transferMoney(fromId, toUsername, amount, note) {
             try {
                 const toUserArr = await sql`SELECT * FROM users WHERE username = ${toUsername}`;
+                // Step 2: Get sender and validate balance
+                const fromUserArr = await sql`
+                    SELECT * FROM users 
+                    WHERE id = ${fromId}
+                `;
                 if (!toUserArr.length) return { success: false, message: 'Recipient not found' };
                 const toUser = toUserArr[0];
                 const numAmount = parseFloat(amount);
+                const fromUser = fromUserArr[0];
 
                 if (currentUser.balance < numAmount) return { success: false, message: 'Insufficient balance' };
 
