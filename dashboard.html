@@ -3,406 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BEK - Dashboard</title>
+    <title>BEK — Client Dashboard</title>
+    <script>
+        (function() {
+            const allowed = 'bekbank.vercel.app';
+            if (window.location.hostname !== allowed && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                window.location.replace('https://' + allowed);
+            }
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-primary: #f8fafc; --bg-secondary: #ffffff; --bg-tertiary: #f1f5f9;
-            --accent: #2563eb; --accent-bg: #eff6ff;
-            --text-primary: #0f172a; --text-secondary: #64748b; --text-muted: #94a3b8;
-            --border: #e2e8f0; --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
-        }
-        * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
-        body { background-color: var(--bg-primary); color: var(--text-primary); min-height: 100vh; margin: 0; line-height: 1.6; }
-        .navbar { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
-        .card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .card-elevated { box-shadow: 0 4px 20px rgba(37,99,235,0.08); }
-        .input-field { background: var(--bg-secondary); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text-primary); transition: all 0.2s; }
-        .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
-        .btn-primary { background: var(--accent); color: white; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; padding: 10px 20px; }
-        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
-        .btn-secondary { background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); border-radius: 10px; cursor: pointer; padding: 10px 20px; }
-        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
-        .btn-icon { padding: 8px; border-radius: 8px; background: none; border: none; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
-        .btn-icon:hover { background: var(--bg-tertiary); color: var(--accent); }
-        .logo-box { width: 40px; height: 40px; background: var(--accent-bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .logo-box svg { color: var(--accent); }
-        .stat-card { position: relative; overflow: hidden; }
-        .stat-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius: 4px 0 0 4px; }
-        .stat-card.blue::before { background: var(--accent); }
-        .stat-card.green::before { background: var(--success); }
-        .stat-card.red::before { background: var(--danger); }
-        .data-table { width: 100%; border-collapse: collapse; }
-        .data-table th { background: var(--bg-tertiary); color: var(--text-secondary); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); }
-        .data-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); }
-        .data-table tbody tr:hover { background: var(--accent-bg); }
-        .badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
-        .badge-success { background: #d1fae5; color: #065f46; }
-        .badge-danger { background: #fee2e2; color: #991b1b; }
-        .badge-warning { background: #fef3c7; color: #92400e; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        :root { --navy: #0A192F; --gold: #D4AF37; --bg: #F8F9FA; --border: #E2E8F0; }
+        body { font-family: 'Figtree', sans-serif; background-color: var(--bg); color: var(--navy); }
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+        .navbar { background: var(--navy); color: white; padding: 20px 5%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), #F3E5AB); color: var(--navy); font-weight: 600; padding: 10px 20px; border-radius: 6px; transition: 0.3s; }
+        .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212,175,55,0.4); }
+        .btn-outline { border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 6px; transition: 0.3s; }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: white; }
+        .data-table { width: 100%; text-align: left; border-collapse: collapse; }
+        .data-table th { padding: 15px 10px; border-bottom: 2px solid var(--border); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #64748B; }
+        .data-table td { padding: 15px 10px; border-bottom: 1px solid var(--border); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(10,25,47,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 50; }
         .modal-overlay.active { display: flex; }
-        .modal-content { max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; animation: modalIn 0.25s ease-out; }
-        @keyframes modalIn { from { opacity:0; transform:scale(0.95)translateY(10px); } to { opacity:1; transform:scale(1)translateY(0); } }
-        .toast { position: fixed; top: 20px; right: 20px; z-index: 2000; padding: 14px 20px; border-radius: 12px; font-weight: 500; background: #fff; border-left: 4px solid; box-shadow: 0 4px 20px rgba(0,0,0,0.1); animation: slideIn 0.25s; }
-        .toast-success { border-left-color: var(--success); }
-        .toast-error { border-left-color: var(--danger); }
-        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .mono { font-family: monospace; font-size: 0.85em; }
-        .amount-positive { color: var(--success); }
-        .amount-negative { color: var(--danger); }
-        button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-        @media(max-width:640px) { .card { margin: 12px; } .data-table { font-size: 0.85rem; } }
+        .input-field { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; margin-top: 5px; outline: none; }
+        .input-field:focus { border-color: var(--gold); }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="logo-box"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></div>
-                <span class="font-bold text-lg">BEK</span>
-            </div>
-            <div class="flex items-center gap-3">
-                <span id="welcomeUser" class="hidden md:block text-sm" style="color: var(--text-secondary)"></span>
-                <button onclick="logout()" class="btn-secondary px-4 py-2 text-sm">Logout</button>
-            </div>
+    <nav class="navbar flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <div class="serif text-2xl font-bold tracking-wider text-white border border-white/20 p-2 rounded">BEK</div>
+            <span class="hidden md:block text-white/70 text-sm tracking-widest uppercase">Private Client Portal</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="welcomeUser" class="text-sm text-white/90"></span>
+            <button onclick="logout()" class="btn-outline text-sm">Sign Out</button>
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        <div class="card card-elevated p-6 sm:p-8 mb-6">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+    <main class="max-w-6xl mx-auto px-5 py-10">
+        <div class="card bg-gradient-to-br from-[#0A192F] to-[#112240] text-white mb-8 border-none relative overflow-hidden">
+            <div class="absolute right-0 top-0 w-64 h-64 bg-[#D4AF37] rounded-full blur-[100px] opacity-20"></div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10">
                 <div>
-                    <p class="text-xs uppercase tracking-widest font-semibold mb-2" style="color: var(--text-secondary)">Available Balance</p>
-                    <h2 id="userBalance" class="text-4xl sm:text-5xl font-bold tabular-nums" style="color: var(--accent)">$0.00</h2>
-                    <p id="userAccountNum" class="text-sm mt-3 mono" style="color: var(--text-muted)"></p>
+                    <p class="text-xs uppercase tracking-widest text-white/60 mb-2">Total Available Balance</p>
+                    <h2 id="userBalance" class="text-5xl md:text-6xl font-bold text-[#D4AF37] serif mb-2">$0.00</h2>
+                    <p id="userAccountNum" class="text-sm font-mono text-white/40 tracking-wider"></p>
                 </div>
-                <button onclick="openModal('transferModal')" class="btn-primary px-6 py-3 font-medium flex items-center gap-2 self-start sm:self-center">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                    Transfer
+                <button onclick="openModal('transferModal')" class="mt-6 md:mt-0 btn-gold flex items-center gap-2">
+                    Wire Transfer &rarr;
                 </button>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div class="card stat-card green p-5">
-                <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#d1fae5"><svg class="w-5 h-5" style="color:var(--success)" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg></div>
-                    <div><p class="text-xs uppercase tracking-wide font-semibold" style="color:var(--text-secondary)">Deposits</p><p id="totalDeposits" class="text-xl font-bold tabular-nums">$0.00</p></div>
-                </div>
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="card border-l-4 border-l-[#10B981]">
+                <p class="text-xs uppercase text-gray-500 font-bold tracking-wider">Total Deposits</p>
+                <p id="totalDeposits" class="text-2xl font-bold mt-2">$0.00</p>
             </div>
-            <div class="card stat-card red p-5">
-                <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:#fee2e2"><svg class="w-5 h-5" style="color:var(--danger)" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg></div>
-                    <div><p class="text-xs uppercase tracking-wide font-semibold" style="color:var(--text-secondary)">Withdrawals</p><p id="totalWithdrawals" class="text-xl font-bold tabular-nums">$0.00</p></div>
-                </div>
+            <div class="card border-l-4 border-l-[#EF4444]">
+                <p class="text-xs uppercase text-gray-500 font-bold tracking-wider">Total Withdrawals</p>
+                <p id="totalWithdrawals" class="text-2xl font-bold mt-2">$0.00</p>
             </div>
-            <div class="card stat-card blue p-5">
-                <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-xl flex items-center justify-center" style="background:var(--accent-bg)"><svg class="w-5 h-5" style="color:var(--accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
-                    <div><p class="text-xs uppercase tracking-wide font-semibold" style="color:var(--text-secondary)">Transactions</p><p id="transactionCount" class="text-xl font-bold tabular-nums">0</p></div>
-                </div>
+            <div class="card border-l-4 border-l-[#D4AF37]">
+                <p class="text-xs uppercase text-gray-500 font-bold tracking-wider">Transactions</p>
+                <p id="transactionCount" class="text-2xl font-bold mt-2">0</p>
             </div>
         </div>
 
-        <div class="card p-6">
-            <h3 class="text-lg font-bold mb-5">Transaction History</h3>
+        <div class="card">
+            <h3 class="text-xl mb-6 border-b pb-4">Recent Activity</h3>
             <div class="overflow-x-auto">
                 <table class="data-table">
                     <thead><tr><th>Date</th><th>Type</th><th>Description</th><th class="text-right">Amount</th></tr></thead>
-                    <tbody id="transactionBody"><tr><td colspan="4" class="text-center py-10" style="color:var(--text-muted)">No transactions yet</td></tr></tbody>
+                    <tbody id="transactionBody"></tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <!-- Transfer Modal -->
     <div id="transferModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-content card p-6" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold">Transfer Funds</h3>
-                <button onclick="closeModalById('transferModal')" class="btn-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
-            </div>
-            <form id="transferForm" class="space-y-5">
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Recipient</label>
-                    <select id="transferTo" class="input-field w-full px-4 py-3" required><option value="">Select...</option></select>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Amount ($)</label>
-                    <input type="number" id="transferAmount" class="input-field w-full px-4 py-3" min="0.01" step="0.01" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Note</label>
-                    <input type="text" id="transferNote" class="input-field w-full px-4 py-3" placeholder="Optional">
-                </div>
-                <button type="submit" class="btn-primary w-full py-3 font-medium">Send Money</button>
+        <div class="card max-w-md w-full" onclick="event.stopPropagation()">
+            <h3 class="text-2xl mb-6">Initiate Transfer</h3>
+            <form id="transferForm" class="space-y-4">
+                <div><label class="text-xs font-bold uppercase text-gray-500">Recipient</label><select id="transferTo" class="input-field" required></select></div>
+                <div><label class="text-xs font-bold uppercase text-gray-500">Amount (USD)</label><input type="number" id="transferAmount" class="input-field" min="0.01" step="0.01" required></div>
+                <div><label class="text-xs font-bold uppercase text-gray-500">Reference Note</label><input type="text" id="transferNote" class="input-field" placeholder="Optional reference"></div>
+                <button type="submit" class="w-full btn-gold mt-4 py-3">Authorize Transfer</button>
             </form>
         </div>
     </div>
 
-    <div id="toastContainer"></div>
-
     <script type="module">
         import { neon } from 'https://esm.sh/@neondatabase/serverless';
-        
         const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
 
-        function hashPassword(input) {
-            let h = 0;
-            input = input.toUpperCase().replace(/[^A-Z]/g, '');
-            for (let i = 0; i < input.length; i++) {
-                h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
-            }
-            return h.toString().padStart(7, '0');
-        }
-
-        let currentUser = null;
-
-        // Auth check
         const saved = sessionStorage.getItem('bek_user');
-        if (!saved) { 
-            window.location.href = 'index.html'; 
-        }
-        currentUser = JSON.parse(saved);
+        if (!saved) window.location.href = 'index.html';
+        let currentUser = JSON.parse(saved);
 
-        // Refresh user from DB
-        async function refreshUser() {
+        async function loadDashboard() {
             try {
                 const r = await sql`SELECT * FROM users WHERE id = ${currentUser.id}`;
-                if (r.length > 0) {
-                    currentUser = { ...r[0], balance: parseFloat(r[0].balance) };
-                    sessionStorage.setItem('bek_user', JSON.stringify(currentUser));
-                }
-            } catch(e) { console.error(e); }
-        }
-
-        async function getUserTxns(userId) {
-            try {
-                const r = await sql`SELECT * FROM transactions WHERE user_id = ${userId} ORDER BY created_at DESC`;
-                return r.map(row => ({ ...row, date: row.created_at, amount: parseFloat(row.amount) }));
-            } catch(e) { return []; }
-        }
-
-        async function getAllUsers() {
-            try {
-                const r = await sql`SELECT * FROM users WHERE id != ${currentUser.id} AND status = 'active'`;
-                return r.map(row => ({ ...row, balance: parseFloat(row.balance) }));
-            } catch(e) { return []; }
-        }
-
-        // FIXED TRANSFER FUNCTION - Uses explicit ::numeric casting
-        async function transferMoney(fromId, toUsername, amount, note) {
-            try {
-                // Step 1: Get recipient
-                const toUserArr = await sql`
-                    SELECT * FROM users 
-                    WHERE username = ${toUsername}
-                `;
-                
-                if (!toUserArr || toUserArr.length === 0) {
-                    return { success: false, message: 'Recipient not found' };
-                }
-                
-                const toUser = toUserArr[0];
-                
-                // Step 2: Get sender and validate balance
-                const fromUserArr = await sql`
-                    SELECT * FROM users 
-                    WHERE id = ${fromId}
-                `;
-                
-                if (!fromUserArr || fromUserArr.length === 0) {
-                    return { success: false, message: 'Sender not found' };
-                }
-                
-                const fromUser = fromUserArr[0];
-                const numAmount = parseFloat(amount);
-                
-                if (parseFloat(fromUser.balance) < numAmount) {
-                    return { success: false, message: 'Insufficient funds' };
-                }
-                
-                if (fromId === toUser.id) {
-                    return { success: false, message: 'Cannot transfer to self' };
-                }
-
-                // Step 3: Insert sent transaction with EXPLICIT type casting
-                await sql`
-                    INSERT INTO transactions (user_id, type, description, amount)
-                    VALUES (
-                        ${fromId}, 
-                        'sent', 
-                        ${'Transfer to ' + toUser.username + ': ' + note},
-                        ${numAmount}::numeric(15,2)
-                    )
-                `;
-                
-                // Step 4: Deduct from sender
-                await sql`
-                    UPDATE users 
-                    SET balance = balance - ${numAmount}::numeric(15,2)
-                    WHERE id = ${fromId}
-                `;
-
-                // Step 5: Insert received transaction
-                await sql`
-                    INSERT INTO transactions (user_id, type, description, amount)
-                    VALUES (
-                        ${toUser.id}, 
-                        'received',
-                        ${'Transfer from ' + fromUser.username + ': ' + note},
-                        ${numAmount}::numeric(15,2)
-                    )
-                `;
-
-                // Step 6: Add to receiver
-                await sql`
-                    UPDATE users 
-                    SET balance = balance + ${numAmount}::numeric(15,2)
-                    WHERE id = ${toUser.id}
-                `;
-
-                return { success: true };
-            } catch(e) { 
-                console.error('Transfer error:', e);
-                return { success: false, message: e.message }; 
-            }
-        }
-
-        // UI Functions
-        function showToast(msg, type = 'info') {
-            const c = document.createElement('div');
-            c.className = `toast toast-${type}`;
-            c.textContent = msg;
-            document.getElementById('toastContainer').appendChild(c);
-            setTimeout(() => { c.style.opacity = '0'; setTimeout(() => c.remove(), 250); }, 3000);
-        }
-
-        function openModal(id) { 
-            document.getElementById(id).classList.add('active'); 
-            document.body.style.overflow = 'hidden'; 
-        }
-        
-        function closeModalById(id) { 
-            document.getElementById(id).classList.remove('active'); 
-            document.body.style.overflow = ''; 
-        }
-        
-        function closeModal(e) { 
-            if (!e || e.target === e.currentTarget) { 
-                e.currentTarget.classList.remove('active'); 
-                document.body.style.overflow = ''; 
-            } 
-        }
-
-        function logout() { 
-            sessionStorage.removeItem('bek_user'); 
-            window.location.href = 'index.html'; 
-        }
-        
-        window.logout = logout;
-        window.openModal = openModal;
-        window.closeModalById = closeModalById;
-
-        // Load dashboard
-        async function loadDashboard() {
-            await refreshUser();
+                if (r.length > 0) currentUser = { ...r[0], balance: parseFloat(r[0].balance) };
+            } catch(e) {}
             
-            document.getElementById('welcomeUser').textContent = `Hello, ${currentUser.name}`;
+            document.getElementById('welcomeUser').textContent = `Welcome, ${currentUser.name}`;
             document.getElementById('userBalance').textContent = `$${currentUser.balance.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-            document.getElementById('userAccountNum').textContent = `Account: BEK-${String(currentUser.id).padStart(8,'0')}`;
+            document.getElementById('userAccountNum').textContent = `ACC: ${String(currentUser.id).padStart(10,'0')}`;
 
-            const txns = await getUserTxns(currentUser.id);
+            const txns = await sql`SELECT * FROM transactions WHERE user_id = ${currentUser.id} ORDER BY created_at DESC`;
             let dep = 0, wd = 0;
             
-            txns.forEach(t => { 
-                if (t.type === 'deposit' || t.type === 'received') dep += t.amount; 
-                else wd += t.amount; 
-            });
+            const tbody = document.getElementById('transactionBody');
+            tbody.innerHTML = '';
+            
+            if(txns.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-400">No activity on record</td></tr>';
+            } else {
+                txns.forEach(t => {
+                    const amt = parseFloat(t.amount);
+                    const isPos = t.type.includes('deposit') || t.type === 'received';
+                    if (isPos) dep += amt; else wd += amt;
+                    tbody.innerHTML += `<tr>
+                        <td class="text-sm">${new Date(t.created_at).toLocaleDateString()}</td>
+                        <td><span class="px-2 py-1 text-xs rounded font-bold ${isPos ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} uppercase">${t.type}</span></td>
+                        <td class="text-sm">${t.description}</td>
+                        <td class="text-right font-bold ${isPos ? 'text-green-600' : 'text-red-600'}">${isPos ? '+' : '-'}$${amt.toFixed(2)}</td>
+                    </tr>`;
+                });
+            }
             
             document.getElementById('totalDeposits').textContent = `$${dep.toLocaleString('en-US',{minimumFractionDigits:2})}`;
             document.getElementById('totalWithdrawals').textContent = `$${wd.toLocaleString('en-US',{minimumFractionDigits:2})}`;
             document.getElementById('transactionCount').textContent = txns.length;
 
-            renderTxns(txns);
-
-            // Populate transfer dropdown
-            const users = await getAllUsers();
-            document.getElementById('transferTo').innerHTML = '<option value="">Select...</option>' + 
+            const users = await sql`SELECT * FROM users WHERE id != ${currentUser.id} AND status = 'active'`;
+            document.getElementById('transferTo').innerHTML = '<option value="">Select recipient...</option>' + 
                 users.map(u => `<option value="${u.username}">${u.name}</option>`).join('');
         }
 
-        function renderTxns(txns) {
-            const tbody = document.getElementById('transactionBody');
-            
-            if (!txns || !txns.length) { 
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-10" style="color:var(--text-muted)">No transactions</td></tr>'; 
-                return; 
-            }
-            
-            tbody.innerHTML = txns.slice().reverse().map(t => `
-                <tr>
-                    <td>${new Date(t.date).toLocaleDateString()}</td>
-                    <td><span class="badge ${t.type.includes('deposit')||t.type==='received'?'badge-success':'badge-danger'}">${t.type}</span></td>
-                    <td>${t.description}</td>
-                    <td class="text-right tabular-nums font-semibold ${t.type.includes('deposit')||t.type==='received'?'amount-positive':'amount-negative'}">${t.type.includes('deposit')||t.type==='received'?'+':'-'}$${t.amount.toFixed(2)}</td>
-                </tr>
-            `).join('');
-        }
-
-        // Transfer form handler
         document.getElementById('transferForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const toUser = document.getElementById('transferTo').value;
+            const amt = parseFloat(document.getElementById('transferAmount').value);
+            const note = document.getElementById('transferNote').value || 'Wire Transfer';
+
+            if(amt > currentUser.balance) return alert('Insufficient funds for this transfer.');
             
-            const toUsername = document.getElementById('transferTo').value;
-            const amount = document.getElementById('transferAmount').value;
-            const note = document.getElementById('transferNote').value || 'Transfer';
-            
-            // Validate inputs first
-            if (!toUsername) {
-                showToast('Please select a recipient', 'error');
-                return;
-            }
-            
-            if (!amount || isNaN(parseFloat(amount))) {
-                showToast('Please enter a valid amount', 'error');
-                return;
-            }
-            
-            if (parseFloat(amount) <= 0) {
-                showToast('Amount must be greater than zero', 'error');
-                return;
-            }
-            
-            showToast('Processing transfer...', 'info');
-            
-            const r = await transferMoney(
-                currentUser.id, 
-                toUsername, 
-                amount, 
-                note
-            );
-            
-            if (r.success) {
-                showToast('Transfer successful!', 'success');
-                closeModalById('transferModal');
+            const recipient = await sql`SELECT * FROM users WHERE username = ${toUser}`;
+            if(recipient.length === 0) return alert('Recipient not found.');
+            const recId = recipient[0].id;
+
+            try {
+                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${currentUser.id}, 'sent', ${'To ' + toUser + ': ' + note}, ${amt}::numeric(15,2))`;
+                await sql`UPDATE users SET balance = balance - ${amt}::numeric(15,2) WHERE id = ${currentUser.id}`;
+                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${recId}, 'received', ${'From ' + currentUser.username + ': ' + note}, ${amt}::numeric(15,2))`;
+                await sql`UPDATE users SET balance = balance + ${amt}::numeric(15,2) WHERE id = ${recId}`;
+                alert('Transfer Authorized & Completed.');
+                document.getElementById('transferModal').classList.remove('active');
                 e.target.reset();
-                await loadDashboard();
-            } else {
-                showToast(r.message || 'Transfer failed', 'error');
-            }
+                loadDashboard();
+            } catch(err) { alert('Transfer failed. Please try again.'); }
         });
 
-        // Initialize
-        await loadDashboard();
-
-        document.addEventListener('keydown', e => { 
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
-            } 
-        });
+        window.logout = () => { sessionStorage.removeItem('bek_user'); window.location.href = 'index.html'; }
+        window.openModal = (id) => document.getElementById(id).classList.add('active');
+        window.closeModal = (e) => { if(e.target === e.currentTarget) e.currentTarget.classList.remove('active'); }
+        loadDashboard();
     </script>
 </body>
 </html>
