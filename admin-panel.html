@@ -107,7 +107,6 @@
         </div>
     </main>
 
-    <!-- Modals -->
     <!-- Add User Modal -->
     <div id="addUserModal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content card p-6" onclick="event.stopPropagation()">
@@ -139,7 +138,6 @@
                 <div><label class="block text-sm font-semibold mb-2">Balance ($)</label><input type="number" id="editBalance" class="input-field w-full px-4 py-3" step="0.01" required></div>
                 <div><label class="block text-sm font-semibold mb-2">New Password (blank = keep)</label><input type="password" id="editPassword" class="input-field w-full px-4 py-3"></div>
                 <div class="flex gap-3">
-                    <button type="submit" class="btn-primary flex-1 py-3 font-medium">Save</button>
                     <button type="submit" class="btn-primary flex-1 py-3 font-medium">Save Changes</button>
                     <button type="button" onclick="closeModalById('editUserModal')" class="btn-secondary flex-1 py-3 font-medium">Cancel</button>
                 </div>
@@ -196,8 +194,6 @@
 
         // DB helpers
         async function getUsers() {
-            try { const r = await sql`SELECT * FROM users ORDER BY id`; return r.map(row => ({...row, balance:parseFloat(row.balance)})); }
-            catch(e) { console.error(e); return []; }
             try { 
                 const r = await sql`SELECT * FROM users ORDER BY id`; 
                 return r.map(row => ({...row, balance: parseFloat(row.balance)})); 
@@ -207,7 +203,6 @@
         async function getStats() {
             try {
                 const uc = await sql`SELECT COUNT(*)::int as c FROM users`;
-                const tb = await sql`SELECT COALESCE(SUM(balance),0)::decimal as t FROM users`;
                 const tb = await sql`SELECT COALESCE(SUM(balance), 0)::decimal as t FROM users`;
                 const tc = await sql`SELECT COUNT(*)::int as c FROM transactions`;
                 const today = new Date().toISOString().split('T')[0];
@@ -226,7 +221,6 @@
         // FIXED: Uses tagged template literals for proper type handling
         async function addUser(name, username, balance, password) {
             try {
-                await sql`INSERT INTO users (name, username, password_hash, balance) VALUES (${name}, ${username}, ${hashPassword(password)}, ${balance}::decimal)`;
                 await sql`
                     INSERT INTO users (name, username, password_hash, balance) 
                     VALUES (${name}, ${username}, ${hashPassword(password)}, ${balance}::numeric(15,2))
@@ -238,15 +232,6 @@
         // FIXED: Update user with proper type casting
         async function updateUser(id, updates) {
             try {
-                let parts=[], vals=[];
-                if(updates.name!==undefined){parts.push(`name=$${vals.length+1}`);vals.push(updates.name);}
-                if(updates.username!==undefined){parts.push(`username=$${vals.length+1}`);vals.push(updates.username);}
-                if(updates.balance!==undefined){parts.push(`balance=$${vals.length+1}::decimal`);vals.push(updates.balance.toString());}
-                if(updates.password && updates.password.length>0){parts.push(`password_hash=$${vals.length+1}`);vals.push(hashPassword(updates.password));}
-                vals.push(String(id));
-                await sql.unsafe(`UPDATE users SET ${parts.join(',')} WHERE id=$${vals.length}`, vals);
-                return { success:true };
-            } catch(e) { return { success:false, message:e.message }; }
                 const current = (await sql`SELECT * FROM users WHERE id = ${id}`)[0];
                 if (!current) return { success: false, message: 'User not found' };
 
@@ -282,8 +267,6 @@
         }
 
         async function deleteUser(id) {
-            try { await sql`DELETE FROM transactions WHERE user_id=${id}`; await sql`DELETE FROM users WHERE id=${id}`; return { success:true }; }
-            catch(e) { return { success:false, message:e.message }; }
             try { 
                 await sql`DELETE FROM transactions WHERE user_id=${id}`; 
                 await sql`DELETE FROM users WHERE id=${id}`; 
@@ -293,8 +276,6 @@
 
         async function addAdjustment(userId, amount, note) {
             try {
-                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${userId}, 'adjustment', ${note}, ${amount}::decimal)`;
-                await sql`UPDATE users SET balance = balance + ${amount}::decimal WHERE id=${userId}`;
                 const numAmt = parseFloat(amount);
                 await sql`
                     INSERT INTO transactions (user_id, type, description, amount) 
@@ -323,7 +304,6 @@
         window.exportDB=exportDB;
 
         // Render table
-        async function renderTable() {
         async function renderTable(){
             const search=(document.getElementById('searchUsers').value||'').toLowerCase();
             let users=await getUsers();
@@ -395,10 +375,6 @@
 
         async function confirmDelete(){
             const id=document.getElementById('deleteUserId').value;
-            await deleteUser(id);
-            showToast('User deleted','success');
-            closeModalById('deleteModal');
-            await loadPanel();
             const result = await deleteUser(id);
             if(result.success){
                 showToast('User deleted','success');
@@ -433,14 +409,6 @@
 
         document.getElementById('editUserForm').addEventListener('submit',async(e)=>{
             e.preventDefault();
-            const r=await updateUser(document.getElementById('editUserId').value,{
-                name:document.getElementById('editName').value.trim(),
-                username:document.getElementById('editUsername').value.trim(),
-                balance:parseFloat(document.getElementById('editBalance').value),
-                password:document.getElementById('editPassword').value
-            });
-            if(r.success){showToast('Updated!','success');closeModalById('editUserModal');await loadPanel();}
-            else{showToast(r.message||'Failed','error');}
             
             const id = document.getElementById('editUserId').value;
             const updates = {
@@ -489,7 +457,6 @@
             await renderTxns();
         }
 
-        // Expose
         // Expose functions
         window.editUserFunc=editUserFunc;
         window.sendMoneyFunc=sendMoneyFunc;
@@ -501,5 +468,4 @@
         document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.active').forEach(m=>m.classList.remove('active'));});
     </script>
 </body>
-</html>
 </html>
