@@ -3,259 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BEK — Command Center</title>
-    <script>
-        // Strict Origin Enforcement
-        (function() {
-            const allowed = 'bekbank.vercel.app';
-            if (window.location.hostname !== allowed && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                window.location.replace('https://' + allowed);
-            }
-        })();
-    </script>
+    <title>BEK — Command Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #D4AF37; --navy: #050B14; --surface: #0A192F; }
-        body { font-family: 'Inter', sans-serif; background: var(--navy); color: #E2E8F0; min-height: 100vh; }
+        body { font-family: 'Inter', sans-serif; background: #020617; color: #94a3b8; }
         .serif { font-family: 'Playfair Display', serif; }
-        .glass { background: rgba(10, 25, 47, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .gold-glow { box-shadow: 0 0 15px rgba(212, 175, 55, 0.1); }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--navy); }
-        ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
-
-        .btn-action { @apply p-2 rounded-lg transition-all duration-200 hover:scale-110; }
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; }
-        .modal-overlay.active { display: flex; }
+        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .table-row:hover { background: rgba(255,255,255,0.02); }
+        .badge { @apply px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider; }
+        .modal { display: none; }
+        .modal.active { display: flex; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 </head>
-<body class="antialiased">
-    <nav class="glass border-b border-white/10 px-8 py-4 sticky top-0 z-50 flex justify-between items-center">
-        <div class="flex items-center gap-6">
-            <div class="text-2xl font-black serif tracking-tighter text-white border-r border-white/10 pr-6">BEK <span class="text-[#D4AF37]">SYSTEMS</span></div>
-            <div class="hidden md:flex gap-4 text-[10px] uppercase tracking-[0.2em] font-bold text-gray-500">
-                <span class="text-green-500">● Database Online</span>
-                <span>Node: US-EAST-1</span>
+<body class="min-h-screen">
+    
+    <nav class="glass border-b border-white/10 px-8 py-5 flex justify-between items-center sticky top-0 z-40">
+        <div class="flex items-center gap-8">
+            <span class="serif text-2xl text-white tracking-tighter">BEK <span class="text-yellow-500">/</span> SYSTEMS</span>
+            <div class="hidden lg:flex gap-6 text-[10px] uppercase tracking-[0.2em] font-bold">
+                <a href="#" class="text-white">Clients</a>
+                <a href="#" class="text-slate-500 hover:text-white transition">Ledger</a>
+                <a href="#" class="text-slate-500 hover:text-white transition">Security</a>
             </div>
         </div>
-        <div class="flex items-center gap-4">
-            <button onclick="logout()" class="px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10 rounded-md border border-red-500/20 transition">Sign Out</button>
-        </div>
+        <button onclick="logout()" class="text-xs font-bold text-red-500 hover:text-red-400 uppercase tracking-widest transition">Terminate Session</button>
     </nav>
 
-    <main class="max-w-[1600px] mx-auto p-6 space-y-6">
+    <main class="max-w-[1600px] mx-auto p-8 space-y-8">
         
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="glass p-6 rounded-xl border-l-2 border-l-[#D4AF37] gold-glow">
-                <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Global Vault Assets</p>
-                <p class="text-3xl font-bold serif text-white" id="stat-vault">$0.00</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass p-8 rounded-3xl">
+                <p class="text-[10px] uppercase tracking-widest font-bold mb-2">Aggregate Capital</p>
+                <p class="text-4xl text-white serif" id="stat-bal">$0.00</p>
             </div>
-            <div class="glass p-6 rounded-xl border-l-2 border-l-blue-500">
-                <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Total Verified Clients</p>
-                <p class="text-3xl font-bold text-white" id="stat-users">0</p>
+            <div class="glass p-8 rounded-3xl">
+                <p class="text-[10px] uppercase tracking-widest font-bold mb-2">Verified Entities</p>
+                <p class="text-4xl text-white serif" id="stat-users">0</p>
             </div>
-            <div class="glass p-6 rounded-xl border-l-2 border-l-purple-500">
-                <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Processed Volume</p>
-                <p class="text-3xl font-bold text-white" id="stat-txns">0</p>
-            </div>
-            <div class="glass p-6 rounded-xl border-l-2 border-l-green-500">
-                <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Server Status</p>
-                <p class="text-3xl font-bold text-green-500">OPTIMAL</p>
+            <div class="glass p-8 rounded-3xl">
+                <p class="text-[10px] uppercase tracking-widest font-bold mb-2">System Health</p>
+                <p class="text-4xl text-green-500 serif">99.9%</p>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            
-            <div class="xl:col-span-2 space-y-6">
-                <div class="glass rounded-xl overflow-hidden">
-                    <div class="p-6 border-b border-white/10 flex flex-col md:flex-row justify-between gap-4 items-center">
-                        <h2 class="serif text-xl text-white">Client Registry</h2>
-                        <div class="relative w-full md:w-72">
-                            <input type="text" id="userSearch" placeholder="Search by name or @user..." class="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-[#D4AF37] outline-none transition">
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-white/5 text-[10px] uppercase tracking-widest text-gray-500">
-                                <tr>
-                                    <th class="p-4">UID</th>
-                                    <th class="p-4">Profile</th>
-                                    <th class="p-4 text-right">Balance</th>
-                                    <th class="p-4 text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="userList" class="divide-y divide-white/5">
-                                </tbody>
-                        </table>
-                    </div>
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div class="lg:col-span-3 glass rounded-3xl overflow-hidden">
+                <div class="p-6 border-b border-white/5 flex justify-between items-center">
+                    <h2 class="text-white font-bold">Client Directory</h2>
+                    <input type="text" id="search" placeholder="Filter identities..." class="bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-xs outline-none focus:border-yellow-500 w-64">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="text-[10px] uppercase tracking-widest bg-white/5 font-bold">
+                            <tr>
+                                <th class="p-5">Identifier</th>
+                                <th class="p-5">Client Name</th>
+                                <th class="p-5 text-right">Balance</th>
+                                <th class="p-5 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userList" class="divide-y divide-white/5">
+                            </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div class="glass rounded-xl flex flex-col h-[600px]">
-                <div class="p-6 border-b border-white/10">
-                    <h2 class="serif text-xl text-white">Live Audit Log</h2>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">Real-time bank activity</p>
-                </div>
-                <div id="auditLog" class="flex-1 overflow-y-auto p-4 space-y-3">
+            <div class="glass rounded-3xl p-6 h-fit">
+                <h2 class="text-white font-bold mb-6">Recent Ledger</h2>
+                <div id="auditLog" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                     </div>
             </div>
-
         </div>
     </main>
 
-    <div id="actionModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="glass p-8 rounded-2xl w-full max-w-md border border-[#D4AF37]/30" onclick="event.stopPropagation()">
-            <h2 class="serif text-2xl text-white mb-1" id="modalTitle">Modify Client</h2>
-            <p id="modalSubtitle" class="text-xs text-gray-500 mb-6 uppercase tracking-widest font-bold">Account #000</p>
-            
-            <form id="actionForm" class="space-y-4">
-                <input type="hidden" id="modalUserId">
-                <div>
-                    <label class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Display Name</label>
-                    <input type="text" id="editName" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#D4AF37]">
-                </div>
-                <div>
-                    <label class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Liquid Balance (USD)</label>
-                    <input type="number" id="editBalance" step="0.01" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white outline-none focus:border-[#D4AF37]">
-                </div>
-                <div class="pt-4 flex gap-3">
-                    <button type="submit" class="flex-1 bg-[#D4AF37] text-black font-bold py-3 rounded-lg hover:bg-yellow-500 transition">Update Record</button>
-                    <button type="button" onclick="resetPass()" class="px-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500 hover:text-white transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script type="module">
-        import { neon } from 'https://esm.sh/@neondatabase/serverless';
-        const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
-
-        if (!sessionStorage.getItem('bek_admin')) window.location.replace('admin.html');
-
-        let allUsers = [];
-
-        async function loadPanel() {
-            try {
-                const users = await sql`SELECT * FROM users ORDER BY id DESC`;
-                const txns = await sql`SELECT * FROM transactions ORDER BY created_at DESC LIMIT 50`;
-                allUsers = users;
-
-                // Stats
-                const totalBal = users.reduce((acc, curr) => acc + (parseFloat(curr.balance) || 0), 0);
-                document.getElementById('stat-vault').textContent = `$${totalBal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-                document.getElementById('stat-users').textContent = users.length;
-                document.getElementById('stat-txns').textContent = txns.length;
-
-                renderUsers(users);
-                renderAudit(txns);
-            } catch (err) {
-                console.error("Panel Sync Error:", err);
-            }
-        }
-
-        function renderUsers(users) {
-            const list = document.getElementById('userList');
-            list.innerHTML = users.map(u => `
-                <tr class="hover:bg-white/[0.02] transition">
-                    <td class="p-4 font-mono text-[10px] text-gray-500">#${String(u.id).padStart(4,'0')}</td>
-                    <td class="p-4">
-                        <div class="text-sm font-bold text-white">${u.name}</div>
-                        <div class="text-xs text-gray-500">@${u.username}</div>
-                    </td>
-                    <td class="p-4 text-right font-mono font-bold text-[#D4AF37]">$${(parseFloat(u.balance)||0).toLocaleString('en-US',{minimumFractionDigits:2})}</td>
-                    <td class="p-4">
-                        <div class="flex justify-center gap-2">
-                            <button onclick="openEdit(${u.id})" class="btn-action bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                            </button>
-                            <button onclick="deleteUser(${u.id}, '${u.username}')" class="btn-action bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function renderAudit(txns) {
-            const container = document.getElementById('auditLog');
-            container.innerHTML = txns.map(t => {
-                const isPos = t.type === 'deposit' || t.type === 'received';
-                return `
-                    <div class="bg-black/20 p-3 rounded-lg border border-white/5 text-[11px]">
-                        <div class="flex justify-between items-start mb-1">
-                            <span class="font-bold text-gray-400 uppercase tracking-tighter">${t.type}</span>
-                            <span class="text-gray-600">${new Date(t.created_at).toLocaleTimeString()}</span>
-                        </div>
-                        <div class="text-white truncate mb-1">${t.description}</div>
-                        <div class="font-mono font-bold ${isPos ? 'text-green-500' : 'text-red-500'}">
-                            ${isPos ? '+' : '-'}$${parseFloat(t.amount).toFixed(2)}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Search logic
-        document.getElementById('userSearch').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = allUsers.filter(u => 
-                u.name.toLowerCase().includes(term) || 
-                u.username.toLowerCase().includes(term)
-            );
-            renderUsers(filtered);
-        });
-
-        window.openEdit = (id) => {
-            const user = allUsers.find(u => u.id === id);
-            document.getElementById('modalUserId').value = user.id;
-            document.getElementById('editName').value = user.name;
-            document.getElementById('editBalance').value = user.balance;
-            document.getElementById('modalSubtitle').textContent = `Account #${String(user.id).padStart(4,'0')} - @${user.username}`;
-            document.getElementById('actionModal').classList.add('active');
-        };
-
-        document.getElementById('actionForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('modalUserId').value;
-            const name = document.getElementById('editName').value;
-            const bal = document.getElementById('editBalance').value;
-
-            try {
-                await sql`UPDATE users SET name=${name}, balance=${bal}::numeric(15,2) WHERE id=${id}`;
-                document.getElementById('actionModal').classList.remove('active');
-                loadPanel();
-            } catch(err) { alert("Update failed."); }
-        });
-
-        window.resetPass = async () => {
-            const id = document.getElementById('modalUserId').value;
-            if(confirm("Force reset password to '123456'? User will need to change it later.")) {
-                // Hashing '123456' using your custom algorithm logic
-                const newHash = "0003003"; // Result of '123456' through your hash function
-                await sql`UPDATE users SET password_hash=${newHash} WHERE id=${id}`;
-                alert("Password reset completed.");
-            }
-        };
-
-        window.deleteUser = async (id, name) => {
-            if(confirm(`TERMINATE ACCOUNT @${name}? This will erase all transaction history.`)) {
-                await sql`DELETE FROM transactions WHERE user_id=${id}`;
-                await sql`DELETE FROM users WHERE id=${id}`;
-                loadPanel();
-            }
-        };
-
-        window.closeModal = (e) => { if(e.target === e.currentTarget) e.currentTarget.classList.remove('active'); };
-        window.logout = () => { sessionStorage.removeItem('bek_admin'); window.location.replace('admin.html'); };
-
-        loadPanel();
-    </script>
-</body>
-</html>
+    <div id="confirmModal" class="modal fixed inset-0 z-[100] items-center justify-center p-6 bg-black/90 backdrop-blur-sm">
+        <div class="glass p-10 rounded-3xl max-w-sm w-full text-center">
+            <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h3 class="text-white text-xl serif mb-2">Security Breach?</h3>
+            <p class="text-sm text-slate-400 mb-8" id="confirmText">Are you certain you wish to delete this record?</p>
+            <div class="flex gap-3
