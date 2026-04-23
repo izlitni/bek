@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEK — Open Account</title>
+    <script>
+        (function() {
+            const allowed = 'bekbank.vercel.app';
+            if (window.location.hostname !== allowed && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                window.location.replace('https://' + allowed);
+            }
+        })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --navy: #0A192F; --gold: #D4AF37; --bg: #F8F9FA; --text: #0A192F; --border: #E2E8F0; }
+        body { font-family: 'Figtree', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .auth-container { background: white; padding: 50px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); width: 100%; max-width: 480px; border-top: 6px solid var(--gold); }
+        .auth-header { text-align: center; margin-bottom: 40px; }
+        .auth-header h1 { font-family: 'Playfair Display', serif; color: var(--navy); font-size: 32px; margin-bottom: 10px; }
+        .field { margin-bottom: 20px; }
+        .field label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .field input { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Figtree', sans-serif; font-size: 16px; outline: none; transition: border 0.3s; }
+        .field input:focus { border-color: var(--gold); }
+        .btn-submit { width: 100%; padding: 16px; background: var(--navy); color: white; font-weight: 600; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-submit:hover { background: var(--gold); color: var(--navy); }
+        .link { text-align: center; margin-top: 20px; font-size: 14px; color: #64748B; }
+        .link a { color: var(--navy); font-weight: 600; text-decoration: none; }
+        .toast { position: fixed; top: 20px; right: 20px; padding: 15px 25px; background: var(--navy); color: white; border-radius: 8px; font-weight: 500; display: none; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Join BEK Bank</h1>
+            <p style="color: #64748B;">Enter your details to open a secure account.</p>
+        </div>
+        <form id="signupForm">
+            <div class="field">
+                <label>Full Name</label>
+                <input type="text" id="name" required placeholder="John Doe">
+            </div>
+            <div class="field">
+                <label>Username</label>
+                <input type="text" id="username" required placeholder="Choose a unique username">
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="password" required placeholder="Create a strong password">
+            </div>
+            <button type="submit" class="btn-submit" id="submitBtn">Open Account</button>
+        </form>
+        <div class="link">Already a member? <a href="sign-in.html">Sign In</a></div>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script type="module">
+        import { neon } from 'https://esm.sh/@neondatabase/serverless';
+        const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
+
+        function hashPassword(input) {
+            let h = 0; input = input.toUpperCase().replace(/[^A-Z]/g, '');
+            for (let i = 0; i < input.length; i++) h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
+            return h.toString().padStart(7, '0');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn'); btn.disabled = true; btn.textContent = 'Processing...';
+            
+            const name = document.getElementById('name').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                // Check if username exists
+                const existing = await sql`SELECT id FROM users WHERE username = ${username}`;
+                if (existing.length > 0) {
+                    showToast('Username already taken');
+                    btn.disabled = false; btn.textContent = 'Open Account'; return;
+                }
+                
+                // Insert user
+                await sql`INSERT INTO users (name, username, password_hash, balance) VALUES (${name}, ${username}, ${hashPassword(password)}, 0.00)`;
+                showToast('Account Created! Redirecting...');
+                setTimeout(() => window.location.href = 'sign-in.html', 1500);
+            } catch (error) {
+                showToast('Error creating account. Please try again.');
+                btn.disabled = false; btn.textContent = 'Open Account';
+            }
+        });
+    </script>
+</body>
+</html>
