@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEK — Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0c1e3c; --navy-mid: #152d5a; --navy-light: #1e3f7a;
+            --gold: #c8963c; --gold-light: #e4b96a; --gold-pale: #f5e9d0;
+            --pearl: #f7f4ee; --white: #ffffff;
+            --text-primary: #0c1e3c; --text-secondary: #4a5568; --text-muted: #8896a8;
+            --border: #e0dbd0; --success: #0d9e6e; --danger: #e53e3e;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Figtree', sans-serif; min-height: 100vh; background: var(--navy); display: flex; }
+
+        /* Left panel */
+        .left-panel {
+            flex: 1; background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%);
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 40px 56px; position: relative; overflow: hidden;
+        }
+        .left-panel::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: radial-gradient(circle at 80% 20%, rgba(200,150,60,0.1) 0%, transparent 50%);
+        }
+        .left-grid {
+            position: absolute; inset: 0; opacity: 0.03;
+            background-image: linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+        .left-logo { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+        .logo-mark {
+            width: 48px; height: 48px; background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-family: 'Playfair Display', serif; font-weight: 800; font-size: 22px; color: var(--navy);
+        }
+        .logo-text { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 22px; color: var(--white); }
+        .logo-sub { font-size: 11px; color: rgba(200,150,60,0.75); letter-spacing: 0.1em; text-transform: uppercase; }
+        .left-content { position: relative; z-index: 1; }
+        .left-content h2 { font-family: 'Playfair Display', serif; font-size: 42px; line-height: 1.2; color: var(--white); margin-bottom: 20px; }
+        .left-content h2 span { color: var(--gold-light); }
+        .left-content p { font-size: 16px; color: rgba(255,255,255,0.5); line-height: 1.75; max-width: 360px; }
+        .left-features { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; }
+        .left-feat { display: flex; align-items: center; gap: 14px; }
+        .left-feat-dot { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; flex-shrink: 0; }
+        .left-feat span { font-size: 14px; color: rgba(255,255,255,0.55); font-weight: 500; }
+        @media(max-width: 900px) { .left-panel { display: none; } }
+
+        /* Right panel */
+        .right-panel {
+            width: 520px; background: var(--pearl); display: flex; align-items: center;
+            justify-content: center; padding: 48px 56px;
+            flex-shrink: 0;
+        }
+        @media(max-width: 900px) { .right-panel { width: 100%; padding: 40px 24px; } }
+        .form-wrap { width: 100%; max-width: 380px; }
+        .form-header { margin-bottom: 40px; }
+        .form-header h1 { font-family: 'Playfair Display', serif; font-size: 34px; color: var(--navy); font-weight: 700; margin-bottom: 8px; }
+        .form-header p { font-size: 15px; color: var(--text-secondary); }
+        .form-header p a { color: var(--gold); font-weight: 600; text-decoration: none; }
+        .form-header p a:hover { text-decoration: underline; }
+
+        .field { margin-bottom: 22px; }
+        .field label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 8px; letter-spacing: 0.03em; text-transform: uppercase; }
+        .field-input-wrap { position: relative; }
+        .field input {
+            width: 100%; padding: 14px 18px; background: var(--white);
+            border: 1.5px solid var(--border); border-radius: 10px;
+            font-family: 'Figtree', sans-serif; font-size: 15px; color: var(--text-primary);
+            transition: all 0.2s; outline: none;
+        }
+        .field input:focus { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(200,150,60,0.1); }
+        .field input::placeholder { color: var(--text-muted); }
+        .field input.has-icon { padding-right: 48px; }
+        .eye-btn {
+            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer; color: var(--text-muted);
+            display: flex; align-items: center; transition: color 0.2s; padding: 4px;
+        }
+        .eye-btn:hover { color: var(--navy); }
+
+        .btn-submit {
+            width: 100%; padding: 15px; background: linear-gradient(135deg, var(--navy), var(--navy-light));
+            color: var(--white); border: none; border-radius: 10px;
+            font-family: 'Figtree', sans-serif; font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: all 0.25s; margin-top: 8px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(12,30,60,0.3); }
+        .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+        .divider { display: flex; align-items: center; gap: 14px; margin: 28px 0; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        .divider span { font-size: 12px; color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+
+        .link-back {
+            text-align: center; color: var(--text-secondary); font-size: 14px;
+        }
+        .link-back a { color: var(--gold); font-weight: 600; text-decoration: none; }
+        .link-back a:hover { text-decoration: underline; }
+
+        .security-note { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 36px; font-size: 12px; color: var(--text-muted); }
+        .security-note svg { width: 14px; height: 14px; color: var(--success); flex-shrink: 0; }
+
+        /* Toast */
+        .toast {
+            position: fixed; top: 24px; right: 24px; z-index: 9999;
+            padding: 14px 20px; border-radius: 12px; font-weight: 500; font-size: 14px;
+            background: var(--white); border-left: 4px solid;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            animation: toastIn 0.25s ease-out;
+            font-family: 'Figtree', sans-serif;
+        }
+        .toast-success { border-left-color: var(--success); }
+        .toast-error { border-left-color: var(--danger); }
+        .toast-info { border-left-color: var(--gold); }
+        @keyframes toastIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+        <div class="left-grid"></div>
+        <div class="left-logo">
+            <div class="logo-mark">B</div>
+            <div>
+                <div class="logo-text">BEK</div>
+                <div class="logo-sub">Banket el Kes7in</div>
+            </div>
+        </div>
+        <div class="left-content">
+            <h2>Welcome<br>Back to<br><span>Your Bank</span></h2>
+            <p>Access your account, manage transfers, and stay on top of your finances.</p>
+        </div>
+        <div class="left-features">
+            <div class="left-feat"><div class="left-feat-dot"></div><span>Real-time balance tracking</span></div>
+            <div class="left-feat"><div class="left-feat-dot"></div><span>Instant peer-to-peer transfers</span></div>
+            <div class="left-feat"><div class="left-feat-dot"></div><span>Full transaction history</span></div>
+            <div class="left-feat"><div class="left-feat-dot"></div><span>Enterprise-grade security</span></div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+        <div class="form-wrap">
+            <div class="form-header">
+                <h1>Sign In</h1>
+                <p>New to BEK? <a href="sign-up.html">Create a free account</a></p>
+            </div>
+
+            <form id="loginForm">
+                <div class="field">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required autocomplete="username">
+                </div>
+                <div class="field">
+                    <label>Password</label>
+                    <div class="field-input-wrap">
+                        <input type="password" id="password" class="has-icon" placeholder="Enter your password" required autocomplete="current-password">
+                        <button type="button" class="eye-btn" onclick="togglePassword()" aria-label="Toggle password">
+                            <svg id="eyeIcon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                    Sign In to Your Account
+                </button>
+            </form>
+
+            <div class="divider"><span>or</span></div>
+            <div class="link-back">
+                Don't have an account? <a href="sign-up.html">Open one free →</a>
+            </div>
+            <div class="link-back" style="margin-top:12px;">
+                <a href="index.html" style="color: var(--text-muted);">← Back to home</a>
+            </div>
+
+            <div class="security-note">
+                <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0110 1.944 11.954 11.954 0 0117.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                Your connection is secure and encrypted
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer"></div>
+
+    <script type="module">
+        import { neon } from 'https://esm.sh/@neondatabase/serverless';
+        const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
+
+        function hashPassword(input) {
+            let h = 0;
+            input = input.toUpperCase().replace(/[^A-Z]/g, '');
+            for (let i = 0; i < input.length; i++) h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
+            return h.toString().padStart(7, '0');
+        }
+
+        async function verifyUser(username, password) {
+            try {
+                const r = await sql`SELECT * FROM users WHERE username = ${username} AND password_hash = ${hashPassword(password)}`;
+                if (r.length > 0) return { ...r[0], balance: parseFloat(r[0].balance) };
+                return null;
+            } catch(e) { console.error(e); return null; }
+        }
+
+        function showToast(msg, type = 'info') {
+            const c = document.createElement('div');
+            c.className = `toast toast-${type}`;
+            c.textContent = msg;
+            document.getElementById('toastContainer').appendChild(c);
+            setTimeout(() => { c.style.opacity = '0'; setTimeout(() => c.remove(), 250); }, 3500);
+        }
+
+        function togglePassword() {
+            const inp = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            icon.innerHTML = inp.type === 'text'
+                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>'
+                : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+        }
+        window.togglePassword = togglePassword;
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Signing in...';
+            const user = await verifyUser(
+                document.getElementById('username').value.trim(),
+                document.getElementById('password').value
+            );
+            if (user) {
+                sessionStorage.setItem('bek_user', JSON.stringify(user));
+                showToast('Welcome back, ' + user.name + '!', 'success');
+                setTimeout(() => window.location.href = 'dashboard.html', 600);
+            } else {
+                showToast('Invalid username or password', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg> Sign In to Your Account';
+            }
+        });
+    </script>
+</body>
+</html>
