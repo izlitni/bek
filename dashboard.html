@@ -278,10 +278,41 @@
 
                 if (currentUser.balance < numAmount) return { success: false, message: 'Insufficient balance' };
 
-                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${fromId}, 'sent', 'Transfer to ${toUsername}: ${note}', ${numAmount})`;
-                await sql`UPDATE users SET balance = balance - ${numAmount} WHERE id = ${fromId}`;
-                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${toUser.id}, 'received', 'Transfer from ${currentUser.username}: ${note}', ${numAmount})`;
-                await sql`UPDATE users SET balance = balance + ${numAmount} WHERE id = ${toUser.id}`;
+                // Step 3: Insert sent transaction with EXPLICIT type casting
+                await sql`
+                    INSERT INTO transactions (user_id, type, description, amount)
+                    VALUES (
+                        ${fromId}, 
+                        'sent', 
+                        ${'Transfer to ' + toUser.username + ': ' + note},
+                        ${numAmount}::numeric(15,2)
+                    )
+                `;
+                
+                // Step 4: Deduct from sender
+                await sql`
+                    UPDATE users 
+                    SET balance = balance - ${numAmount}::numeric(15,2)
+                    WHERE id = ${fromId}
+                `;
+
+                // Step 5: Insert received transaction
+                await sql`
+                    INSERT INTO transactions (user_id, type, description, amount)
+                    VALUES (
+                        ${toUser.id}, 
+                        'received',
+                        ${'Transfer from ' + fromUser.username + ': ' + note},
+                        ${numAmount}::numeric(15,2)
+                    )
+                `;
+
+                // Step 6: Add to receiver
+                await sql`
+                    UPDATE users 
+                    SET balance = balance + ${numAmount}::numeric(15,2)
+                    WHERE id = ${toUser.id}
+                `;
 
                 return { success: true };
             } catch(e) { return { success: false, message: e.message }; }
