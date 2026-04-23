@@ -3,39 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BEK — Admin Access</title>
+    <title>BEK — Corporate Access</title>
     <script>
         (function() {
             const allowed = 'bekbank.vercel.app';
-            if (window.location.hostname !== allowed && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            const current = window.location.hostname;
+            if (current !== allowed && current !== 'localhost' && current !== '127.0.0.1') {
                 window.location.replace('https://' + allowed);
             }
         })();
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0A192F; font-family: 'Figtree', sans-serif; }
-        .card { background: white; padding: 40px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); text-align: center; border-top: 5px solid #EF4444; }
-        h1 { font-family: 'Playfair Display', serif; color: #0A192F; font-size: 28px; margin: 0 0 5px 0; }
-        p { color: #64748B; font-size: 14px; margin-bottom: 30px; }
-        .input { width: 100%; padding: 12px; border: 1px solid #E2E8F0; border-radius: 6px; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; }
-        .input:focus { outline: none; border-color: #EF4444; }
-        .btn { width: 100%; background: #EF4444; color: white; border: none; padding: 14px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .btn:hover { background: #DC2626; }
-        .back { display: block; margin-top: 20px; font-size: 13px; color: #64748B; text-decoration: none; }
+        :root { --bg: #050B14; --surface: #0A192F; --gold: #D4AF37; --danger: #EF4444; --text: #F8F9FA; --muted: #64748B; }
+        body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); font-family: 'Figtree', sans-serif; color: var(--text); background-image: radial-gradient(circle at 50% 0%, #112240 0%, transparent 50%); }
+        .login-box { background: var(--surface); padding: 50px 40px; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.8); border: 1px solid rgba(212,175,55,0.2); position: relative; overflow: hidden; }
+        .login-box::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--danger), var(--gold)); }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-family: 'Playfair Display', serif; font-size: 28px; margin: 0 0 10px 0; color: white; letter-spacing: 1px; }
+        .header p { color: var(--danger); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin: 0; }
+        .field { margin-bottom: 20px; }
+        .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .field input { width: 100%; padding: 14px; background: rgba(0,0,0,0.2); border: 1px solid #1e3f7a; border-radius: 6px; color: white; font-family: monospace; font-size: 16px; outline: none; transition: 0.3s; box-sizing: border-box; }
+        .field input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(212,175,55,0.2); }
+        .btn { width: 100%; padding: 16px; background: var(--text); color: var(--bg); font-weight: 700; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; transition: 0.3s; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .btn:hover { background: var(--gold); }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .footer-link { display: block; text-align: center; margin-top: 25px; color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.3s; }
+        .footer-link:hover { color: white; }
+        .toast { position: fixed; top: 20px; right: 20px; padding: 15px 25px; background: var(--danger); color: white; border-radius: 6px; font-weight: 500; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Admin Gateway</h1>
-        <p>Restricted Corporate Access Only</p>
+    <div class="login-box">
+        <div class="header">
+            <h1>Central Command</h1>
+            <p>Restricted Authorization</p>
+        </div>
         <form id="adminForm">
-            <input type="text" id="adminUser" class="input" placeholder="Admin ID" required>
-            <input type="password" id="adminPass" class="input" placeholder="Passcode" required>
-            <button type="submit" class="btn">Authenticate</button>
+            <div class="field">
+                <label>Administrator ID</label>
+                <input type="text" id="adminUser" required autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field">
+                <label>Security Passcode</label>
+                <input type="password" id="adminPass" required>
+            </div>
+            <button type="submit" class="btn" id="submitBtn">Authenticate</button>
         </form>
-        <a href="index.html" class="back">&larr; Return to Public Site</a>
+        <a href="index.html" class="footer-link">&larr; Return to Public Portal</a>
     </div>
+    <div id="toast" class="toast"></div>
 
     <script type="module">
         import { neon } from 'https://esm.sh/@neondatabase/serverless';
@@ -47,13 +65,32 @@
             return h.toString().padStart(7, '0');
         }
 
+        function showToast(msg, color = 'var(--danger)') {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.style.background = color; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+
         document.getElementById('adminForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const r = await sql`SELECT * FROM admin WHERE username = ${document.getElementById('adminUser').value.trim()} AND password_hash = ${hashPassword(document.getElementById('adminPass').value)}`;
-            if (r.length > 0) {
-                sessionStorage.setItem('bek_admin', 'true');
-                window.location.href = 'admin-panel.html';
-            } else { alert('Access Denied: Invalid Credentials'); }
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true; btn.textContent = 'VERIFYING...';
+
+            try {
+                const r = await sql`SELECT * FROM admin WHERE username = ${document.getElementById('adminUser').value.trim()} AND password_hash = ${hashPassword(document.getElementById('adminPass').value)}`;
+                if (r.length > 0) {
+                    sessionStorage.setItem('bek_admin', 'true');
+                    showToast('Authorization Granted', '#10B981');
+                    setTimeout(() => window.location.href = 'admin-panel.html', 800);
+                } else {
+                    showToast('Access Denied: Invalid Credentials');
+                    btn.disabled = false; btn.textContent = 'AUTHENTICATE';
+                }
+            } catch (err) {
+                showToast('Network Error: Database unreachable');
+                console.error(err);
+                btn.disabled = false; btn.textContent = 'AUTHENTICATE';
+            }
         });
     </script>
 </body>
