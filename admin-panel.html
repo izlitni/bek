@@ -3,100 +3,503 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BEK — Admin Control Panel</title>
-    <script>
-        (function() {
-            const allowed = 'bekbank.vercel.app';
-            if (window.location.hostname !== allowed && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                window.location.replace('https://' + allowed);
-            }
-        })();
-    </script>
+    <title>BEK - Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --navy: #0A192F; --border: #E2E8F0; }
-        body { font-family: 'Figtree', sans-serif; background: #F4F7F6; color: var(--navy); }
-        .nav { background: #0A192F; color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
-        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
-        .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .data-table { width: 100%; text-align: left; border-collapse: collapse; font-size: 14px; }
-        .data-table th { padding: 12px; border-bottom: 2px solid var(--border); background: #F8F9FA; color: #64748B; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
-        .data-table td { padding: 12px; border-bottom: 1px solid var(--border); }
-        .btn-red { background: #EF4444; color: white; padding: 6px 12px; border-radius: 4px; font-weight: 600; font-size: 12px; text-transform: uppercase; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 50; }
+        :root {
+            --bg-primary: #f8fafc; --bg-secondary: #ffffff; --bg-tertiary: #f1f5f9;
+            --accent: #2563eb; --accent-bg: #eff6ff;
+            --text-primary: #0f172a; --text-secondary: #64748b; --text-muted: #94a3b8;
+            --border: #e2e8f0; --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
+        }
+        * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
+        body { background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; margin: 0; line-height: 1.6; }
+        .navbar { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+        .card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .input-field { background: var(--bg-secondary); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text-primary); transition: all 0.2s; }
+        .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+        .btn-primary { background: var(--accent); color: white; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; padding: 10px 20px; }
+        .btn-primary:hover { background: #1d4ed8; box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
+        .btn-danger { background: var(--danger); color: white; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; padding: 10px 20px; }
+        .btn-danger:hover { background: #dc2626; box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
+        .btn-success { background: var(--success); color: white; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; padding: 10px 20px; }
+        .btn-success:hover { background: #059669; }
+        .btn-secondary { background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); border-radius: 10px; cursor: pointer; padding: 10px 20px; }
+        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+        .btn-icon { padding: 8px; border-radius: 8px; background: none; border: none; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
+        .btn-icon:hover { background: var(--bg-tertiary); color: var(--accent); }
+        .logo-box { width: 40px; height: 40px; background: #fee2e2; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .logo-box svg { color: var(--danger); }
+        .stat-card { position: relative; overflow: hidden; }
+        .stat-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius: 4px 0 0 4px; }
+        .stat-card.blue::before { background: var(--accent); }
+        .stat-card.green::before { background: var(--success); }
+        .stat-card.yellow::before { background: var(--warning); }
+        .stat-card.red::before { background: var(--danger); }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: var(--bg-tertiary); color: var(--text-secondary); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        .data-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+        .data-table tbody tr:hover { background: var(--accent-bg); }
+        .badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
         .modal-overlay.active { display: flex; }
-        .input-field { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-top: 4px; }
+        .modal-content { max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; animation: modalIn 0.25s ease-out; }
+        @keyframes modalIn { from { opacity:0; transform:scale(0.95)translateY(10px); } to { opacity:1; transform:scale(1)translateY(0); } }
+        .toast { position: fixed; top: 20px; right: 20px; z-index: 2000; padding: 14px 20px; border-radius: 12px; font-weight: 500; background: #fff; border-left: 4px solid; box-shadow: 0 4px 20px rgba(0,0,0,0.1); animation: slideIn 0.25s; }
+        .toast-success { border-left-color: var(--success); }
+        .toast-error { border-left-color: var(--danger); }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .mono { font-family: monospace; font-size: 0.85em; }
+        button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        @media(max-width:640px) { .card { margin: 12px; } .data-table { font-size: 0.85rem; } }
     </style>
 </head>
 <body>
-    <div class="nav">
-        <div class="serif text-xl tracking-wider">BEK System Admin</div>
-        <button onclick="logout()" class="btn-red">Terminate Session</button>
-    </div>
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+                <div class="logo-box"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+                <span class="font-bold text-lg">BEK Admin</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="exportDB()" class="btn-secondary text-sm flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Export</button>
+                <button onclick="adminLogout()" class="btn-danger text-sm">Logout</button>
+            </div>
+        </div>
+    </nav>
 
-    <div class="max-w-7xl mx-auto p-6">
-        <div class="grid grid-cols-4 gap-4 mb-6">
-            <div class="card border-t-4 border-t-blue-500"><p class="text-xs text-gray-500 uppercase">Total Users</p><p class="text-2xl font-bold" id="totUsers">0</p></div>
-            <div class="card border-t-4 border-t-green-500"><p class="text-xs text-gray-500 uppercase">Global Vault</p><p class="text-2xl font-bold text-green-600" id="totBal">$0</p></div>
-            <div class="card border-t-4 border-t-yellow-500"><p class="text-xs text-gray-500 uppercase">Transactions</p><p class="text-2xl font-bold" id="totTxn">0</p></div>
-            <div class="card border-t-4 border-t-red-500"><p class="text-xs text-gray-500 uppercase">Active Today</p><p class="text-2xl font-bold" id="actToday">0</p></div>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="card stat-card blue p-5"><p class="text-xs uppercase tracking-wide font-semibold mb-1" style="color:var(--text-secondary)">Users</p><p id="totalUsers" class="text-3xl font-bold" style="color:var(--accent)">0</p></div>
+            <div class="card stat-card green p-5"><p class="text-xs uppercase tracking-wide font-semibold mb-1" style="color:var(--text-secondary)">Total Balance</p><p id="totalBalance" class="text-3xl font-bold" style="color:var(--success)">$0</p></div>
+            <div class="card stat-card yellow p-5"><p class="text-xs uppercase tracking-wide font-semibold mb-1" style="color:var(--text-secondary)">Transactions</p><p id="totalTxns" class="text-3xl font-bold" style="color:var(--warning)">0</p></div>
+            <div class="card stat-card red p-5"><p class="text-xs uppercase tracking-wide font-semibold mb-1" style="color:var(--text-secondary)">Active Today</p><p id="activeToday" class="text-3xl font-bold" style="color:var(--danger)">0</p></div>
         </div>
 
-        <div class="card mb-6">
-            <h2 class="text-lg font-bold mb-4">Client Management</h2>
+        <div class="card p-6 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h3 class="text-lg font-bold">Users</h3>
+                <div class="flex gap-3">
+                    <input type="text" id="searchUsers" class="input-field px-4 py-2 text-sm" placeholder="Search..." oninput="renderTable()">
+                    <button onclick="openModal('addUserModal')" class="btn-success text-sm flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Add</button>
+                </div>
+            </div>
             <div class="overflow-x-auto">
                 <table class="data-table">
-                    <thead><tr><th>ID</th><th>Client Name</th><th>Username</th><th class="text-right">Balance</th><th>Actions</th></tr></thead>
-                    <tbody id="userTable"></tbody>
+                    <thead><tr><th>ID</th><th>Name</th><th>Username</th><th>Hash</th><th class="text-right">Balance</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="userTableBody"></tbody>
                 </table>
             </div>
         </div>
+
+        <div class="card p-6">
+            <h3 class="text-lg font-bold mb-5">All Transactions</h3>
+            <div class="overflow-x-auto">
+                <table class="data-table">
+                    <thead><tr><th>User</th><th>Type</th><th>Description</th><th class="text-right">Amount</th><th>Date</th></tr></thead>
+                    <tbody id="txnTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content card p-6" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold">Add User</h3>
+                <button onclick="closeModalById('addUserModal')" class="btn-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <form id="addUserForm" class="space-y-4">
+                <div><label class="block text-sm font-semibold mb-2">Name</label><input type="text" id="addName" class="input-field w-full px-4 py-3" required></div>
+                <div><label class="block text-sm font-semibold mb-2">Username</label><input type="text" id="addUsername" class="input-field w-full px-4 py-3" required></div>
+                <div><label class="block text-sm font-semibold mb-2">Balance ($)</label><input type="number" id="addBalance" class="input-field w-full px-4 py-3" value="0" step="0.01" required></div>
+                <div><label class="block text-sm font-semibold mb-2">Password</label><input type="password" id="addPassword" class="input-field w-full px-4 py-3" required minlength="4"></div>
+                <button type="submit" class="btn-success w-full py-3 font-medium">Create User</button>
+            </form>
+        </div>
     </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content card p-6" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold">Edit User</h3>
+                <button onclick="closeModalById('editUserModal')" class="btn-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <form id="editUserForm" class="space-y-4">
+                <input type="hidden" id="editUserId">
+                <div><label class="block text-sm font-semibold mb-2">Name</label><input type="text" id="editName" class="input-field w-full px-4 py-3" required></div>
+                <div><label class="block text-sm font-semibold mb-2">Username</label><input type="text" id="editUsername" class="input-field w-full px-4 py-3" required></div>
+                <div><label class="block text-sm font-semibold mb-2">Balance ($)</label><input type="number" id="editBalance" class="input-field w-full px-4 py-3" step="0.01" required></div>
+                <div><label class="block text-sm font-semibold mb-2">New Password (blank = keep)</label><input type="password" id="editPassword" class="input-field w-full px-4 py-3"></div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-primary flex-1 py-3 font-medium">Save</button>
+                    <button type="submit" class="btn-primary flex-1 py-3 font-medium">Save Changes</button>
+                    <button type="button" onclick="closeModalById('editUserModal')" class="btn-secondary flex-1 py-3 font-medium">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content card p-6" onclick="event.stopPropagation()" class="text-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background:#fee2e2"><svg class="w-8 h-8" style="color:var(--danger)" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></div>
+            <h3 class="text-xl font-bold mb-2">Delete User?</h3>
+            <p class="mb-6 text-sm" style="color:var(--text-secondary)">This cannot be undone.</p>
+            <input type="hidden" id="deleteUserId">
+            <div class="flex gap-3">
+                <button onclick="confirmDelete()" class="btn-danger flex-1 py-3 font-medium">Delete</button>
+                <button onclick="closeModalById('deleteModal')" class="btn-secondary flex-1 py-3 font-medium">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Money Modal -->
+    <div id="sendMoneyModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content card p-6" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold">Send Money</h3>
+                <button onclick="closeModalById('sendMoneyModal')" class="btn-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <form id="sendMoneyForm" class="space-y-4">
+                <input type="hidden" id="sendMoneyUserId">
+                <p id="sendMoneyInfo" class="text-sm p-3 rounded-lg" style="background:var(--bg-tertiary);color:var(--text-secondary)"></p>
+                <div><label class="block text-sm font-semibold mb-2">Amount ($)</label><input type="number" id="sendMoneyAmount" class="input-field w-full px-4 py-3" step="0.01" required placeholder="Negative = deduct"></div>
+                <div><label class="block text-sm font-semibold mb-2">Note</label><input type="text" id="sendMoneyNote" class="input-field w-full px-4 py-3" required placeholder="Reason..."></div>
+                <button type="submit" class="btn-primary w-full py-3 font-medium">Process</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toastContainer"></div>
 
     <script type="module">
         import { neon } from 'https://esm.sh/@neondatabase/serverless';
         const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
 
-        if (!sessionStorage.getItem('bek_admin')) window.location.href = 'admin.html';
+        function hashPassword(input) {
+            let h = 0;
+            input = input.toUpperCase().replace(/[^A-Z]/g, '');
+            for (let i = 0; i < input.length; i++) h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
+            return h.toString().padStart(7, '0');
+        }
 
-        async function loadData() {
-            const users = await sql`SELECT * FROM users ORDER BY id ASC`;
-            const txns = await sql`SELECT * FROM transactions`;
-            
-            document.getElementById('totUsers').textContent = users.length;
-            document.getElementById('totTxn').textContent = txns.length;
-            
-            const bal = users.reduce((acc, curr) => acc + parseFloat(curr.balance), 0);
-            document.getElementById('totBal').textContent = `$${bal.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-            
-            const today = new Date().toISOString().split('T')[0];
-            const active = new Set(txns.filter(t => t.created_at.startsWith(today)).map(t => t.user_id)).size;
-            document.getElementById('actToday').textContent = active;
+        // Auth check
+        if (!sessionStorage.getItem('bek_admin')) { window.location.href = 'admin.html'; }
 
-            document.getElementById('userTable').innerHTML = users.map(u => `
+        // DB helpers
+        async function getUsers() {
+            try { const r = await sql`SELECT * FROM users ORDER BY id`; return r.map(row => ({...row, balance:parseFloat(row.balance)})); }
+            catch(e) { console.error(e); return []; }
+            try { 
+                const r = await sql`SELECT * FROM users ORDER BY id`; 
+                return r.map(row => ({...row, balance: parseFloat(row.balance)})); 
+            } catch(e) { console.error(e); return []; }
+        }
+
+        async function getStats() {
+            try {
+                const uc = await sql`SELECT COUNT(*)::int as c FROM users`;
+                const tb = await sql`SELECT COALESCE(SUM(balance),0)::decimal as t FROM users`;
+                const tb = await sql`SELECT COALESCE(SUM(balance), 0)::decimal as t FROM users`;
+                const tc = await sql`SELECT COUNT(*)::int as c FROM transactions`;
+                const today = new Date().toISOString().split('T')[0];
+                const at = await sql`SELECT COUNT(DISTINCT user_id)::int as c FROM transactions WHERE created_at >= ${today}::date`;
+                return { users: parseInt(uc[0]?.c||0), balance: parseFloat(tb[0]?.t||0), txns: parseInt(tc[0]?.c||0), active: parseInt(at[0]?.c||0) };
+            } catch(e) { return {users:0,balance:0,txns:0,active:0}; }
+        }
+
+        async function getAllTxns() {
+            try {
+                const r = await sql`SELECT t.*, u.username as userName FROM transactions t JOIN users u ON t.user_id=u.id ORDER BY t.created_at DESC LIMIT 100`;
+                return r.map(row => ({...row, date: row.created_at, amount: parseFloat(row.amount)}));
+            } catch(e) { return []; }
+        }
+
+        // FIXED: Uses tagged template literals for proper type handling
+        async function addUser(name, username, balance, password) {
+            try {
+                await sql`INSERT INTO users (name, username, password_hash, balance) VALUES (${name}, ${username}, ${hashPassword(password)}, ${balance}::decimal)`;
+                await sql`
+                    INSERT INTO users (name, username, password_hash, balance) 
+                    VALUES (${name}, ${username}, ${hashPassword(password)}, ${balance}::numeric(15,2))
+                `;
+                return { success: true };
+            } catch(e) { return { success: false, message: e.message }; }
+        }
+
+        // FIXED: Update user with proper type casting
+        async function updateUser(id, updates) {
+            try {
+                let parts=[], vals=[];
+                if(updates.name!==undefined){parts.push(`name=$${vals.length+1}`);vals.push(updates.name);}
+                if(updates.username!==undefined){parts.push(`username=$${vals.length+1}`);vals.push(updates.username);}
+                if(updates.balance!==undefined){parts.push(`balance=$${vals.length+1}::decimal`);vals.push(updates.balance.toString());}
+                if(updates.password && updates.password.length>0){parts.push(`password_hash=$${vals.length+1}`);vals.push(hashPassword(updates.password));}
+                vals.push(String(id));
+                await sql.unsafe(`UPDATE users SET ${parts.join(',')} WHERE id=$${vals.length}`, vals);
+                return { success:true };
+            } catch(e) { return { success:false, message:e.message }; }
+                const current = (await sql`SELECT * FROM users WHERE id = ${id}`)[0];
+                if (!current) return { success: false, message: 'User not found' };
+
+                let newName = updates.name !== undefined ? updates.name : current.name;
+                let newUsername = updates.username !== undefined ? updates.username : current.username;
+                let newBalance = updates.balance !== undefined ? parseFloat(updates.balance) : parseFloat(current.balance);
+
+                if (updates.password && updates.password.length > 0) {
+                    const newHash = hashPassword(updates.password);
+                    await sql`
+                        UPDATE users 
+                        SET name = ${newName}, 
+                            username = ${newUsername}, 
+                            password_hash = ${newHash},
+                            balance = ${newBalance}::numeric(15,2)
+                        WHERE id = ${id}
+                    `;
+                } else {
+                    await sql`
+                        UPDATE users 
+                        SET name = ${newName}, 
+                            username = ${newUsername}, 
+                            balance = ${newBalance}::numeric(15,2)
+                        WHERE id = ${id}
+                    `;
+                }
+
+                return { success: true };
+            } catch(e) { 
+                console.error('Update error:', e);
+                return { success: false, message: e.message }; 
+            }
+        }
+
+        async function deleteUser(id) {
+            try { await sql`DELETE FROM transactions WHERE user_id=${id}`; await sql`DELETE FROM users WHERE id=${id}`; return { success:true }; }
+            catch(e) { return { success:false, message:e.message }; }
+            try { 
+                await sql`DELETE FROM transactions WHERE user_id=${id}`; 
+                await sql`DELETE FROM users WHERE id=${id}`; 
+                return { success: true }; 
+            } catch(e) { return { success:false, message:e.message }; }
+        }
+
+        async function addAdjustment(userId, amount, note) {
+            try {
+                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${userId}, 'adjustment', ${note}, ${amount}::decimal)`;
+                await sql`UPDATE users SET balance = balance + ${amount}::decimal WHERE id=${userId}`;
+                const numAmt = parseFloat(amount);
+                await sql`
+                    INSERT INTO transactions (user_id, type, description, amount) 
+                    VALUES (${userId}, 'adjustment', ${note}, ${numAmt}::numeric(15,2))
+                `;
+                await sql`UPDATE users SET balance = balance + ${numAmt}::numeric(15,2) WHERE id=${userId}`;
+                return { success:true };
+            } catch(e) { return { success:false, message:e.message }; }
+        }
+
+        // UI
+        function showToast(msg, type='info') {
+            const c=document.createElement('div'); c.className=`toast toast-${type}`; c.textContent=msg;
+            document.getElementById('toastContainer').appendChild(c);
+            setTimeout(()=>{c.style.opacity='0';setTimeout(()=>c.remove(),250);},3000);
+        }
+
+        function openModal(id){document.getElementById(id).classList.add('active');document.body.style.overflow='hidden';}
+        function closeModalById(id){document.getElementById(id).classList.remove('active');document.body.style.overflow='';}
+        function closeModal(e){if(!e||e.target===e.currentTarget){e.currentTarget.classList.remove('active');document.body.style.overflow='';}}
+        function adminLogout(){sessionStorage.removeItem('bek_admin');window.location.href='admin.html';}
+
+        window.adminLogout=adminLogout;
+        window.openModal=openModal;
+        window.closeModalById=closeModalById;
+        window.exportDB=exportDB;
+
+        // Render table
+        async function renderTable() {
+        async function renderTable(){
+            const search=(document.getElementById('searchUsers').value||'').toLowerCase();
+            let users=await getUsers();
+            if(search) users=users.filter(u=>u.name.toLowerCase().includes(search)||u.username.toLowerCase().includes(search));
+
+            document.getElementById('userTableBody').innerHTML=users.map(u=>`
                 <tr>
-                    <td class="font-mono text-xs text-gray-500">#${String(u.id).padStart(5,'0')}</td>
-                    <td class="font-bold">${u.name}</td>
+                    <td class="mono text-sm">#${u.id}</td>
+                    <td class="font-semibold">${u.name}</td>
                     <td>@${u.username}</td>
-                    <td class="text-right font-bold text-green-600">$${parseFloat(u.balance).toLocaleString('en-US',{minimumFractionDigits:2})}</td>
+                    <td class="mono text-xs" style="color:var(--text-muted)">${u.password_hash}</td>
+                    <td class="text-right tabular-nums font-semibold" style="color:var(--success)">$${u.balance.toLocaleString('en-US',{minimumFractionDigits:2})}</td>
+                    <td><span class="badge ${u.status==='active'?'badge-success':'badge-danger'}">${u.status}</span></td>
                     <td>
-                        <button onclick="deleteUser(${u.id})" class="text-red-500 hover:text-red-700 text-xs font-bold uppercase tracking-wider">Revoke</button>
+                        <div class="flex gap-1">
+                            <button onclick="editUserFunc(${u.id})" class="btn-icon" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+                            <button onclick="sendMoneyFunc(${u.id})" class="btn-icon" title="Send Money"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg></button>
+                            <button onclick="deleteUserFunc(${u.id})" class="btn-icon" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
         }
 
-        window.deleteUser = async (id) => {
-            if(confirm('Are you sure you want to permanently delete this client?')) {
-                await sql`DELETE FROM transactions WHERE user_id=${id}`; 
-                await sql`DELETE FROM users WHERE id=${id}`;
-                loadData();
-            }
-        };
+        async function renderTxns(){
+            const txns=await getAllTxns();
+            const tbody=document.getElementById('txnTableBody');
+            if(!txns.length){tbody.innerHTML='<tr><td colspan="5" class="text-center py-10" style="color:var(--text-muted)">No transactions</td></tr>';return;}
+            tbody.innerHTML=txns.map(t=>`
+                <tr>
+                    <td class="font-semibold">${t.userName||'Unknown'}</td>
+                    <td><span class="badge ${t.type.includes('deposit')||t.type==='received'?'badge-success':t.type==='adjustment'?'badge-warning':'badge-danger'}">${t.type}</span></td>
+                    <td>${t.description}</td>
+                    <td class="text-right tabular-nums font-semibold" style="color:${t.type.includes('deposit')||t.type==='received'?'var(--success)':'var(--danger)'}">${t.type.includes('deposit')||t.type==='received'?'+':'-'}$${t.amount.toFixed(2)}</td>
+                    <td class="text-sm" style="color:var(--text-muted)">${new Date(t.date).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
 
-        window.logout = () => { sessionStorage.removeItem('bek_admin'); window.location.href = 'admin.html'; };
-        loadData();
+        // Action functions
+        async function editUserFunc(id){
+            const users=await getUsers();
+            const u=users.find(x=>x.id===id);
+            if(u){
+                document.getElementById('editUserId').value=id;
+                document.getElementById('editName').value=u.name;
+                document.getElementById('editUsername').value=u.username;
+                document.getElementById('editBalance').value=u.balance;
+                document.getElementById('editPassword').value='';
+                openModal('editUserModal');
+            }
+        }
+
+        async function sendMoneyFunc(id){
+            const users=await getUsers();
+            const u=users.find(x=>x.id===id);
+            if(u){
+                document.getElementById('sendMoneyUserId').value=id;
+                document.getElementById('sendMoneyInfo').textContent=`${u.name} (@${u.username}) | Balance: $${u.balance.toLocaleString('en-US',{minimumFractionDigits:2})}`;
+                document.getElementById('sendMoneyForm').reset();
+                openModal('sendMoneyModal');
+            }
+        }
+
+        function deleteUserFunc(id){
+            document.getElementById('deleteUserId').value=id;
+            openModal('deleteModal');
+        }
+
+        async function confirmDelete(){
+            const id=document.getElementById('deleteUserId').value;
+            await deleteUser(id);
+            showToast('User deleted','success');
+            closeModalById('deleteModal');
+            await loadPanel();
+            const result = await deleteUser(id);
+            if(result.success){
+                showToast('User deleted','success');
+                closeModalById('deleteModal');
+                await loadPanel();
+            } else {
+                showToast(result.message || 'Delete failed','error');
+            }
+        }
+
+        async function exportDB(){
+            showToast('Exporting...','info');
+            const data={users:await getUsers(), exportedAt:new Date().toISOString()};
+            const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');a.href=url;a.download=`bek_admin_${new Date().toISOString().split('T')[0]}.json`;a.click();URL.revokeObjectURL(url);
+            showToast('Exported!','success');
+        }
+
+        // Forms
+        document.getElementById('addUserForm').addEventListener('submit',async(e)=>{
+            e.preventDefault();
+            const r=await addUser(
+                document.getElementById('addName').value.trim(),
+                document.getElementById('addUsername').value.trim(),
+                document.getElementById('addBalance').value,
+                document.getElementById('addPassword').value
+            );
+            if(r.success){showToast('User created!','success');closeModalById('addUserModal');e.target.reset();await loadPanel();}
+            else{showToast(r.message||'Failed','error');}
+        });
+
+        document.getElementById('editUserForm').addEventListener('submit',async(e)=>{
+            e.preventDefault();
+            const r=await updateUser(document.getElementById('editUserId').value,{
+                name:document.getElementById('editName').value.trim(),
+                username:document.getElementById('editUsername').value.trim(),
+                balance:parseFloat(document.getElementById('editBalance').value),
+                password:document.getElementById('editPassword').value
+            });
+            if(r.success){showToast('Updated!','success');closeModalById('editUserModal');await loadPanel();}
+            else{showToast(r.message||'Failed','error');}
+            
+            const id = document.getElementById('editUserId').value;
+            const updates = {
+                name: document.getElementById('editName').value.trim(),
+                username: document.getElementById('editUsername').value.trim(),
+                balance: parseFloat(document.getElementById('editBalance').value),
+                password: document.getElementById('editPassword').value
+            };
+
+            // Validate
+            if(!updates.name || !updates.username || isNaN(updates.balance)){
+                showToast('Please fill all fields correctly','error');
+                return;
+            }
+
+            const result = await updateUser(id, updates);
+            
+            if(result.success){
+                showToast('User updated successfully!','success');
+                closeModalById('editUserModal');
+                await loadPanel(); // Refresh table to show changes
+            } else {
+                showToast(result.message || 'Update failed','error');
+            }
+        });
+
+        document.getElementById('sendMoneyForm').addEventListener('submit',async(e)=>{
+            e.preventDefault();
+            const r=await addAdjustment(
+                document.getElementById('sendMoneyUserId').value,
+                document.getElementById('sendMoneyAmount').value,
+                document.getElementById('sendMoneyNote').value
+            );
+            if(r.success){showToast('Processed!','success');closeModalById('sendMoneyModal');await loadPanel();}
+            else{showToast(r.message||'Failed','error');}
+        });
+
+        // Load panel
+        async function loadPanel(){
+            const s=await getStats();
+            document.getElementById('totalUsers').textContent=s.users;
+            document.getElementById('totalBalance').textContent='$'+s.balance.toLocaleString('en-US',{minimumFractionDigits:2});
+            document.getElementById('totalTxns').textContent=s.txns;
+            document.getElementById('activeToday').textContent=s.active;
+            await renderTable();
+            await renderTxns();
+        }
+
+        // Expose
+        // Expose functions
+        window.editUserFunc=editUserFunc;
+        window.sendMoneyFunc=sendMoneyFunc;
+        window.deleteUserFunc=deleteUserFunc;
+        window.confirmDelete=confirmDelete;
+
+        // Init
+        await loadPanel();
+        document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.active').forEach(m=>m.classList.remove('active'));});
     </script>
 </body>
+</html>
 </html>
