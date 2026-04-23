@@ -3,177 +3,324 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BEK — Client Dashboard</title>
-    <script>
-        (function() {
-            const allowed = 'bekbank.vercel.app';
-            if (window.location.hostname !== allowed && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                window.location.replace('https://' + allowed);
-            }
-        })();
-    </script>
+    <title>BEK - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        :root { --navy: #0A192F; --gold: #D4AF37; --bg: #F8F9FA; --border: #E2E8F0; }
-        body { font-family: 'Figtree', sans-serif; background-color: var(--bg); color: var(--navy); }
-        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
-        .navbar { background: var(--navy); color: white; padding: 20px 5%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
-        .btn-gold { background: linear-gradient(135deg, var(--gold), #F3E5AB); color: var(--navy); font-weight: 600; padding: 10px 20px; border-radius: 6px; transition: 0.3s; }
-        .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(212,175,55,0.4); }
-        .btn-outline { border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 6px; transition: 0.3s; }
-        .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: white; }
-        .data-table { width: 100%; text-align: left; border-collapse: collapse; }
-        .data-table th { padding: 15px 10px; border-bottom: 2px solid var(--border); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #64748B; }
-        .data-table td { padding: 15px 10px; border-bottom: 1px solid var(--border); }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(10,25,47,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 50; }
+        :root {
+            --bg-main: #fcfcfd;
+            --sidebar-bg: #ffffff;
+            --accent: #2563eb;
+            --accent-soft: #eff6ff;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --border: #f1f5f9;
+        }
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); }
+
+        /* Sidebar Styling */
+        .sidebar { width: 260px; height: 100vh; position: fixed; background: var(--sidebar-bg); border-right: 1px solid var(--border); }
+        .main-content { margin-left: 260px; min-height: 100vh; padding: 2rem; }
+
+        /* Card Designs */
+        .glass-card { background: #ffffff; border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.01); }
+        .balance-card { 
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .balance-card::after {
+            content: ''; position: absolute; top: -50%; right: -20%; width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(37,99,235,0.2) 0%, transparent 70%);
+        }
+
+        /* Elements */
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-sub); transition: all 0.2s; cursor: pointer; }
+        .nav-item:hover { background: var(--accent-soft); color: var(--accent); }
+        .nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+        .btn-action { background: var(--accent); color: white; border-radius: 12px; transition: 0.2s; }
+        .btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .data-table th { color: var(--text-sub); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 16px; border-bottom: 1px solid var(--border); }
+        .data-table td { padding: 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+
+        .badge { padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; }
+        .badge-received { background: #dcfce7; color: #15803d; }
+        .badge-sent { background: #fee2e2; color: #b91c1c; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.4); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; }
         .modal-overlay.active { display: flex; }
-        .input-field { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; margin-top: 5px; outline: none; }
-        .input-field:focus { border-color: var(--gold); }
+        
+        @media(max-width: 1024px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 1rem; }
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar flex justify-between items-center">
-        <div class="flex items-center gap-4">
-            <div class="serif text-2xl font-bold tracking-wider text-white border border-white/20 p-2 rounded">BEK</div>
-            <span class="hidden md:block text-white/70 text-sm tracking-widest uppercase">Private Client Portal</span>
-        </div>
-        <div class="flex items-center gap-4">
-            <span id="welcomeUser" class="text-sm text-white/90"></span>
-            <button onclick="logout()" class="btn-outline text-sm">Sign Out</button>
-        </div>
-    </nav>
 
-    <main class="max-w-6xl mx-auto px-5 py-10">
-        <div class="card bg-gradient-to-br from-[#0A192F] to-[#112240] text-white mb-8 border-none relative overflow-hidden">
-            <div class="absolute right-0 top-0 w-64 h-64 bg-[#D4AF37] rounded-full blur-[100px] opacity-20"></div>
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10">
-                <div>
-                    <p class="text-xs uppercase tracking-widest text-white/60 mb-2">Total Available Balance</p>
-                    <h2 id="userBalance" class="text-5xl md:text-6xl font-bold text-[#D4AF37] serif mb-2">$0.00</h2>
-                    <p id="userAccountNum" class="text-sm font-mono text-white/40 tracking-wider"></p>
-                </div>
-                <button onclick="openModal('transferModal')" class="mt-6 md:mt-0 btn-gold flex items-center gap-2">
-                    Wire Transfer &rarr;
+    <aside class="sidebar p-6 flex flex-col">
+        <div class="flex items-center gap-3 mb-10 px-2">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">B</div>
+            <span class="text-xl font-extrabold tracking-tight">BEK Bank</span>
+        </div>
+
+        <nav class="space-y-2 flex-grow">
+            <div class="nav-item active"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Dashboard</div>
+            <div class="nav-item"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> Transactions</div>
+            <div class="nav-item"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Security</div>
+        </nav>
+
+        <div class="pt-6 border-t border-slate-100">
+            <button onclick="logout()" class="nav-item w-full text-red-500 hover:bg-red-50 hover:text-red-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Logout
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 id="welcomeUser" class="text-2xl font-bold text-slate-900">Welcome back</h1>
+                <p class="text-slate-500 text-sm">Here's what's happening with your account today.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="openModal('transferModal')" class="btn-action px-5 py-2.5 font-semibold text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> Send Money
                 </button>
             </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-2 glass-card balance-card p-8 flex flex-col justify-between min-h-[220px]">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Total Balance</p>
+                    <h2 id="userBalance" class="text-5xl font-bold tracking-tight">$0.00</h2>
+                </div>
+                <div class="flex justify-between items-end">
+                    <p id="userAccountNum" class="font-mono text-sm opacity-60"></p>
+                    <div class="flex -space-x-2">
+                        <div class="w-8 h-8 rounded-full border-2 border-slate-800 bg-slate-700"></div>
+                        <div class="w-8 h-8 rounded-full border-2 border-slate-800 bg-slate-600"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="glass-card p-6 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase mb-1">Inflow</p>
+                        <p id="totalDeposits" class="text-xl font-bold text-emerald-600">$0.00</p>
+                    </div>
+                    <div class="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    </div>
+                </div>
+                <div class="glass-card p-6 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase mb-1">Outflow</p>
+                        <p id="totalWithdrawals" class="text-xl font-bold text-rose-600">$0.00</p>
+                    </div>
+                    <div class="p-3 bg-rose-50 rounded-xl text-rose-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"/></svg>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-6 mb-8">
-            <div class="card border-l-4 border-l-[#10B981]">
-                <p class="text-xs uppercase text-gray-500 font-bold tracking-wider">Total Deposits</p>
-                <p id="totalDeposits" class="text-2xl font-bold mt-2">$0.00</p>
+        <div class="glass-card overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-bold text-lg">Recent Transactions</h3>
+                <span id="transactionCount" class="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">0 Total</span>
             </div>
-            <div class="card border-l-4 border-l-[#EF4444]">
-                <p class="text-xs uppercase text-gray-500 font-bold tracking-wider">Total Withdrawals</p>
-                <p id="totalWithdrawals" class="text-2xl font-bold mt-2">$0.00</p>
-            </div>
-            <div class="card border-l-4 border-l-[#D4AF37]">
-                <p class="text-xs uppercase text-gray-500 font-bold tracking-wider">Transactions</p>
-                <p id="transactionCount" class="text-2xl font-bold mt-2">0</p>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3 class="text-xl mb-6 border-b pb-4">Recent Activity</h3>
             <div class="overflow-x-auto">
-                <table class="data-table">
-                    <thead><tr><th>Date</th><th>Type</th><th>Description</th><th class="text-right">Amount</th></tr></thead>
-                    <tbody id="transactionBody"></tbody>
+                <table class="data-table w-full text-left">
+                    <thead>
+                        <tr>
+                            <th>Transaction</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th class="text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionBody">
+                        <tr><td colspan="4" class="text-center py-12 text-slate-400">Loading your history...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
     </main>
 
     <div id="transferModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="card max-w-md w-full" onclick="event.stopPropagation()">
-            <h3 class="text-2xl mb-6">Initiate Transfer</h3>
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Transfer</h3>
+                <button onclick="closeModalById('transferModal')" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
             <form id="transferForm" class="space-y-4">
-                <div><label class="text-xs font-bold uppercase text-gray-500">Recipient</label><select id="transferTo" class="input-field" required></select></div>
-                <div><label class="text-xs font-bold uppercase text-gray-500">Amount (USD)</label><input type="number" id="transferAmount" class="input-field" min="0.01" step="0.01" required></div>
-                <div><label class="text-xs font-bold uppercase text-gray-500">Reference Note</label><input type="text" id="transferNote" class="input-field" placeholder="Optional reference"></div>
-                <button type="submit" class="w-full btn-gold mt-4 py-3">Authorize Transfer</button>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Recipient</label>
+                    <select id="transferTo" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all" required>
+                        <option value="">Select recipient...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Amount</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3.5 font-bold text-slate-400">$</span>
+                        <input type="number" id="transferAmount" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-4 py-3 outline-none focus:border-blue-500 transition-all" placeholder="0.00" step="0.01" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Reference (Optional)</label>
+                    <input type="text" id="transferNote" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all" placeholder="What's this for?">
+                </div>
+                <button type="submit" class="btn-action w-full py-4 font-bold text-lg mt-4">Confirm Transfer</button>
             </form>
         </div>
     </div>
+
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-[3000] space-y-3"></div>
 
     <script type="module">
         import { neon } from 'https://esm.sh/@neondatabase/serverless';
         const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
 
+        let currentUser = null;
+
+        // Auth Logic
         const saved = sessionStorage.getItem('bek_user');
-        if (!saved) window.location.href = 'index.html';
-        let currentUser = JSON.parse(saved);
+        if (!saved) { window.location.href = 'index.html'; }
+        currentUser = JSON.parse(saved);
+
+        async function refreshUser() {
+            const r = await sql`SELECT * FROM users WHERE id = ${currentUser.id}`;
+            if (r.length > 0) {
+                currentUser = { ...r[0], balance: parseFloat(r[0].balance) };
+                sessionStorage.setItem('bek_user', JSON.stringify(currentUser));
+            }
+        }
 
         async function loadDashboard() {
-            try {
-                const r = await sql`SELECT * FROM users WHERE id = ${currentUser.id}`;
-                if (r.length > 0) currentUser = { ...r[0], balance: parseFloat(r[0].balance) };
-            } catch(e) {}
+            await refreshUser();
             
-            document.getElementById('welcomeUser').textContent = `Welcome, ${currentUser.name}`;
+            // UI Update
+            document.getElementById('welcomeUser').textContent = `Hello, ${currentUser.name.split(' ')[0]} 👋`;
             document.getElementById('userBalance').textContent = `$${currentUser.balance.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-            document.getElementById('userAccountNum').textContent = `ACC: ${String(currentUser.id).padStart(10,'0')}`;
+            document.getElementById('userAccountNum').textContent = `BEK • ${String(currentUser.id).padStart(8,'0')}`;
 
+            // Txns
             const txns = await sql`SELECT * FROM transactions WHERE user_id = ${currentUser.id} ORDER BY created_at DESC`;
             let dep = 0, wd = 0;
-            
-            const tbody = document.getElementById('transactionBody');
-            tbody.innerHTML = '';
-            
-            if(txns.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-400">No activity on record</td></tr>';
-            } else {
-                txns.forEach(t => {
-                    const amt = parseFloat(t.amount);
-                    const isPos = t.type.includes('deposit') || t.type === 'received';
-                    if (isPos) dep += amt; else wd += amt;
-                    tbody.innerHTML += `<tr>
-                        <td class="text-sm">${new Date(t.created_at).toLocaleDateString()}</td>
-                        <td><span class="px-2 py-1 text-xs rounded font-bold ${isPos ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} uppercase">${t.type}</span></td>
-                        <td class="text-sm">${t.description}</td>
-                        <td class="text-right font-bold ${isPos ? 'text-green-600' : 'text-red-600'}">${isPos ? '+' : '-'}$${amt.toFixed(2)}</td>
-                    </tr>`;
-                });
-            }
-            
-            document.getElementById('totalDeposits').textContent = `$${dep.toLocaleString('en-US',{minimumFractionDigits:2})}`;
-            document.getElementById('totalWithdrawals').textContent = `$${wd.toLocaleString('en-US',{minimumFractionDigits:2})}`;
-            document.getElementById('transactionCount').textContent = txns.length;
+            txns.forEach(t => { 
+                const amt = parseFloat(t.amount);
+                if (t.type === 'deposit' || t.type === 'received') dep += amt; 
+                else wd += amt; 
+            });
 
+            document.getElementById('totalDeposits').textContent = `+$${dep.toLocaleString()}`;
+            document.getElementById('totalWithdrawals').textContent = `-$${wd.toLocaleString()}`;
+            document.getElementById('transactionCount').textContent = `${txns.length} Total`;
+
+            renderTxns(txns);
+
+            // Dropdown
             const users = await sql`SELECT * FROM users WHERE id != ${currentUser.id} AND status = 'active'`;
             document.getElementById('transferTo').innerHTML = '<option value="">Select recipient...</option>' + 
                 users.map(u => `<option value="${u.username}">${u.name}</option>`).join('');
         }
 
+        function renderTxns(txns) {
+            const tbody = document.getElementById('transactionBody');
+            if (!txns.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-20 text-slate-400 font-medium">No transactions found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = txns.map(t => {
+                const isGain = t.type === 'deposit' || t.type === 'received';
+                const date = new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                return `
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center ${isGain ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="${isGain ? 'M7 11l5-5m0 0l5 5m-5-5v12' : 'M17 13l-5 5m0 0l-5-5m5 5V6'}"/></svg>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm">${t.description}</p>
+                                    <p class="text-xs text-slate-400 capitalize">${t.type}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-sm font-medium text-slate-500">${date}</td>
+                        <td><span class="badge ${isGain ? 'badge-received' : 'badge-sent'}">Success</span></td>
+                        <td class="text-right font-bold ${isGain ? 'text-emerald-600' : 'text-slate-900'}">
+                            ${isGain ? '+' : '-'}$${parseFloat(t.amount).toFixed(2)}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Action Handlers
+        async function transferMoney(fromId, toUsername, amount, note) {
+            try {
+                const toUserArr = await sql`SELECT * FROM users WHERE username = ${toUsername}`;
+                if (!toUserArr.length) return { success: false, message: 'Recipient not found' };
+                const toUser = toUserArr[0];
+                const numAmount = parseFloat(amount);
+
+                if (currentUser.balance < numAmount) return { success: false, message: 'Insufficient balance' };
+
+                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${fromId}, 'sent', 'Transfer to ${toUsername}: ${note}', ${numAmount})`;
+                await sql`UPDATE users SET balance = balance - ${numAmount} WHERE id = ${fromId}`;
+                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${toUser.id}, 'received', 'Transfer from ${currentUser.username}: ${note}', ${numAmount})`;
+                await sql`UPDATE users SET balance = balance + ${numAmount} WHERE id = ${toUser.id}`;
+
+                return { success: true };
+            } catch(e) { return { success: false, message: e.message }; }
+        }
+
         document.getElementById('transferForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const toUser = document.getElementById('transferTo').value;
-            const amt = parseFloat(document.getElementById('transferAmount').value);
-            const note = document.getElementById('transferNote').value || 'Wire Transfer';
+            const to = document.getElementById('transferTo').value;
+            const amt = document.getElementById('transferAmount').value;
+            const note = document.getElementById('transferNote').value || 'Payment';
 
-            if(amt > currentUser.balance) return alert('Insufficient funds for this transfer.');
+            showToast('Syncing with blockchain...', 'info');
+            const r = await transferMoney(currentUser.id, to, amt, note);
             
-            const recipient = await sql`SELECT * FROM users WHERE username = ${toUser}`;
-            if(recipient.length === 0) return alert('Recipient not found.');
-            const recId = recipient[0].id;
-
-            try {
-                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${currentUser.id}, 'sent', ${'To ' + toUser + ': ' + note}, ${amt}::numeric(15,2))`;
-                await sql`UPDATE users SET balance = balance - ${amt}::numeric(15,2) WHERE id = ${currentUser.id}`;
-                await sql`INSERT INTO transactions (user_id, type, description, amount) VALUES (${recId}, 'received', ${'From ' + currentUser.username + ': ' + note}, ${amt}::numeric(15,2))`;
-                await sql`UPDATE users SET balance = balance + ${amt}::numeric(15,2) WHERE id = ${recId}`;
-                alert('Transfer Authorized & Completed.');
-                document.getElementById('transferModal').classList.remove('active');
+            if (r.success) {
+                showToast('Funds delivered successfully', 'success');
+                closeModalById('transferModal');
                 e.target.reset();
                 loadDashboard();
-            } catch(err) { alert('Transfer failed. Please try again.'); }
+            } else {
+                showToast(r.message, 'error');
+            }
         });
 
-        window.logout = () => { sessionStorage.removeItem('bek_user'); window.location.href = 'index.html'; }
-        window.openModal = (id) => document.getElementById(id).classList.add('active');
-        window.closeModal = (e) => { if(e.target === e.currentTarget) e.currentTarget.classList.remove('active'); }
+        // Global UI helpers
+        window.openModal = (id) => { document.getElementById(id).classList.add('active'); };
+        window.closeModalById = (id) => { document.getElementById(id).classList.remove('active'); };
+        window.closeModal = (e) => { if(e.target === e.currentTarget) e.target.classList.remove('active'); };
+        window.logout = () => { sessionStorage.clear(); window.location.href = 'index.html'; };
+
+        function showToast(msg, type) {
+            const t = document.createElement('div');
+            const colors = { success: 'border-emerald-500', error: 'border-rose-500', info: 'border-blue-500' };
+            t.className = `bg-white border-l-4 ${colors[type]} p-4 rounded-xl shadow-xl animate-bounce-in min-w-[280px] font-bold text-sm`;
+            t.textContent = msg;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; setTimeout(() => t.remove(), 300); }, 3000);
+        }
+
         loadDashboard();
     </script>
 </body>
