@@ -3,469 +3,370 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BEK - Admin Panel</title>
+    <title>BEK — Systems Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #f8fafc; --bg-secondary: #ffffff; --bg-tertiary: #f1f5f9;
-            --accent: #2563eb; --accent-bg: #eff6ff;
-            --text-primary: #0f172a; --text-secondary: #64748b; --text-muted: #94a3b8;
-            --border: #e2e8f0; --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
+            --bg-deep: #020617;
+            --bg-card: rgba(15, 23, 42, 0.6);
+            --accent: #eab308;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
         }
-        * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
-        body { background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; margin: 0; line-height: 1.6; }
-        .navbar { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
-        .card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .input-field { background: var(--bg-secondary); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text-primary); transition: all 0.2s; }
-        .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
-        .btn-primary { background: var(--accent); color: white; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; padding: 10px 20px; }
-        .btn-primary:hover { background: #1d4ed8; box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
-        .btn-danger { background: var(--danger); color: white; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; padding: 10px 20px; }
-        .btn-danger:hover { background: #dc2626; box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
-        .btn-success { background: var(--success); color: white; font-weight: 600; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; padding: 10px 20px; }
-        .btn-success:hover { background: #059669; }
-        .btn-secondary { background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); border-radius: 10px; cursor: pointer; padding: 10px 20px; }
-        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
-        .btn-icon { padding: 8px; border-radius: 8px; background: none; border: none; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
-        .btn-icon:hover { background: var(--bg-tertiary); color: var(--accent); }
-        .logo-box { width: 40px; height: 40px; background: #fee2e2; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .logo-box svg { color: var(--danger); }
-        .stat-card { position: relative; overflow: hidden; }
-        .stat-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius: 4px 0 0 4px; }
-        .stat-card.blue::before { background: var(--accent); }
-        .stat-card.green::before { background: var(--success); }
-        .stat-card.yellow::before { background: var(--warning); }
-        .stat-card.red::before { background: var(--danger); }
-        .data-table { width: 100%; border-collapse: collapse; }
-        .data-table th { background: var(--bg-tertiary); color: var(--text-secondary); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); }
-        .data-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); }
-        .data-table tbody tr:hover { background: var(--accent-bg); }
-        .badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
-        .badge-success { background: #d1fae5; color: #065f46; }
-        .badge-danger { background: #fee2e2; color: #991b1b; }
-        .badge-warning { background: #fef3c7; color: #92400e; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-overlay.active { display: flex; }
-        .modal-content { max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; animation: modalIn 0.25s ease-out; }
-        @keyframes modalIn { from { opacity:0; transform:scale(0.95)translateY(10px); } to { opacity:1; transform:scale(1)translateY(0); } }
-        .toast { position: fixed; top: 20px; right: 20px; z-index: 2000; padding: 14px 20px; border-radius: 12px; font-weight: 500; background: #fff; border-left: 4px solid; box-shadow: 0 4px 20px rgba(0,0,0,0.1); animation: slideIn 0.25s; }
-        .toast-success { border-left-color: var(--success); }
-        .toast-error { border-left-color: var(--danger); }
-        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .mono { font-family: monospace; font-size: 0.85em; }
-        button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-        @media(max-width:640px) { .card { margin: 12px; } .data-table { font-size: 0.85rem; } }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        .glass {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+
+        /* Animations */
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes modalFade { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        
+        .toast-item { animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .modal-animate { animation: modalFade 0.2s ease-out forwards; }
+
+        .sidebar-link.active {
+            background: rgba(234, 179, 8, 0.1);
+            color: var(--accent);
+            border-right: 2px solid var(--accent);
+        }
+
+        .data-row:hover { background: rgba(255,255,255,0.02); }
     </style>
 </head>
-<body>
-    <nav class="navbar">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between flex-wrap gap-3">
-            <div class="flex items-center gap-3">
-                <div class="logo-box"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
-                <span class="font-bold text-lg">BEK Admin</span>
+<body class="flex min-h-screen">
+
+    <aside class="w-64 border-r border-white/5 flex flex-col fixed h-full z-50 bg-[#020617]">
+        <div class="p-8">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center text-black font-black">B</div>
+                <span class="font-extrabold tracking-tighter text-xl text-white">BEK <span class="text-yellow-500">SYSTEMS</span></span>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="exportDB()" class="btn-secondary text-sm flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Export</button>
-                <button onclick="adminLogout()" class="btn-danger text-sm">Logout</button>
+
+            <nav class="space-y-1">
+                <a href="#" class="sidebar-link active flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-lg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    Command Center
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Capital Ledger
+                </a>
+            </nav>
+        </div>
+        
+        <div class="mt-auto p-6">
+            <button onclick="adminLogout()" class="w-full flex items-center justify-center gap-2 py-3 text-xs font-bold text-red-400 hover:bg-red-400/10 rounded-xl transition uppercase tracking-widest">
+                Terminate Session
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 ml-64 p-10">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-2xl font-bold text-white">Infrastructure Overview</h1>
+                <p class="text-sm text-slate-500">Real-time status of the BEK financial network.</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="exportDB()" class="glass px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-white/5 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Export Nodes
+                </button>
+                <button onclick="openModal('addUserModal')" class="bg-yellow-500 text-black px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-yellow-400 transition shadow-lg shadow-yellow-500/10">
+                    + Provision User
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+            <div class="glass p-6 rounded-3xl relative overflow-hidden group">
+                <div class="absolute right-0 top-0 w-24 h-24 bg-blue-500/5 rounded-full -mr-8 -mt-8"></div>
+                <p class="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2">Network Users</p>
+                <p id="totalUsers" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div class="glass p-6 rounded-3xl">
+                <p class="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2">Total Liquidity</p>
+                <p id="totalBalance" class="text-3xl font-bold text-yellow-500">$0</p>
+            </div>
+            <div class="glass p-6 rounded-3xl">
+                <p class="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2">Operations</p>
+                <p id="totalTxns" class="text-3xl font-bold text-white">0</p>
+            </div>
+            <div class="glass p-6 rounded-3xl">
+                <p class="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2">System Load</p>
+                <p id="activeToday" class="text-3xl font-bold text-green-500">Nominal</p>
             </div>
         </div>
-    </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="card stat-card blue p-5"><p class="text-xs uppercase tracking-wide font-semibold mb-1" style="color:var(--text-secondary)">Users</p><p id="totalUsers" class="text-3xl font-bold" style="color:var(--accent)">0</p></div>
-            <div class="card stat-card green p-5"><p class="text-xs uppercase tracking-wide font-semibold mb-1" style="color:var(--text-secondary)">Total Balance</p><p id="totalBalance" class="text-3xl font-bold" style="color:var(--success)">$0</p></div>
-            <div class="card stat-card yellow p-5"><p class="text-xs uppercase tracking-wide font-semibold mb-1" style="color:var(--text-secondary)">Transactions</p><p id="totalTxns" class="text-3xl font-bold" style="color:var(--warning)">0</p></div>
-            <div class="card stat-card red p-5"><p class="text-xs uppercase tracking-wide font-semibold mb-1" style="color:var(--text-secondary)">Active Today</p><p id="activeToday" class="text-3xl font-bold" style="color:var(--danger)">0</p></div>
-        </div>
-
-        <div class="card p-6 mb-6">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                <h3 class="text-lg font-bold">Users</h3>
-                <div class="flex gap-3">
-                    <input type="text" id="searchUsers" class="input-field px-4 py-2 text-sm" placeholder="Search..." oninput="renderTable()">
-                    <button onclick="openModal('addUserModal')" class="btn-success text-sm flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Add</button>
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <div class="xl:col-span-2 glass rounded-3xl overflow-hidden">
+                <div class="p-6 border-b border-white/5 flex items-center justify-between">
+                    <h3 class="font-bold">Identity Management</h3>
+                    <input type="text" id="searchUsers" placeholder="Filter identities..." class="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs outline-none focus:border-yellow-500 w-48 transition" oninput="renderTable()">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="text-[10px] uppercase tracking-widest bg-white/5 text-slate-400 font-bold">
+                            <tr>
+                                <th class="p-5">Node ID</th>
+                                <th class="p-5">Entity</th>
+                                <th class="p-5 text-right">Balance</th>
+                                <th class="p-5 text-center">Protocol</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody" class="divide-y divide-white/5"></tbody>
+                    </table>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="data-table">
-                    <thead><tr><th>ID</th><th>Name</th><th>Username</th><th>Hash</th><th class="text-right">Balance</th><th>Status</th><th>Actions</th></tr></thead>
-                    <tbody id="userTableBody"></tbody>
-                </table>
-            </div>
-        </div>
 
-        <div class="card p-6">
-            <h3 class="text-lg font-bold mb-5">All Transactions</h3>
-            <div class="overflow-x-auto">
-                <table class="data-table">
-                    <thead><tr><th>User</th><th>Type</th><th>Description</th><th class="text-right">Amount</th><th>Date</th></tr></thead>
-                    <tbody id="txnTableBody"></tbody>
-                </table>
+            <div class="glass rounded-3xl p-6 h-fit">
+                <h3 class="font-bold mb-6">Security Logs</h3>
+                <div id="txnTableBody" class="space-y-4 max-h-[600px] overflow-y-auto pr-2"></div>
             </div>
         </div>
     </main>
 
-    <!-- Add User Modal -->
-    <div id="addUserModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-content card p-6" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold">Add User</h3>
-                <button onclick="closeModalById('addUserModal')" class="btn-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    <div id="notification-area" class="fixed bottom-6 right-6 flex flex-col gap-3 z-[1000]"></div>
+
+    <div id="security-confirm" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[2000] hidden items-center justify-center p-6">
+        <div class="glass max-w-sm w-full p-10 rounded-[2.5rem] text-center modal-animate">
+            <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h2 class="text-xl font-bold mb-2">Destructive Action</h2>
+            <p id="confirm-msg" class="text-sm text-slate-400 mb-8 leading-relaxed"></p>
+            <div class="flex gap-3">
+                <button id="confirm-proceed" class="flex-1 bg-red-500 hover:bg-red-400 text-white font-bold py-3.5 rounded-2xl transition">Confirm</button>
+                <button onclick="closeConfirm()" class="flex-1 bg-white/5 hover:bg-white/10 text-white font-bold py-3.5 rounded-2xl transition">Abort</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addUserModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-6">
+        <div class="glass max-w-md w-full p-8 rounded-[2rem] modal-animate">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-xl font-bold">New Entity Provisioning</h3>
+                <button onclick="closeModalById('addUserModal')" class="text-slate-400 hover:text-white">✕</button>
             </div>
             <form id="addUserForm" class="space-y-4">
-                <div><label class="block text-sm font-semibold mb-2">Name</label><input type="text" id="addName" class="input-field w-full px-4 py-3" required></div>
-                <div><label class="block text-sm font-semibold mb-2">Username</label><input type="text" id="addUsername" class="input-field w-full px-4 py-3" required></div>
-                <div><label class="block text-sm font-semibold mb-2">Balance ($)</label><input type="number" id="addBalance" class="input-field w-full px-4 py-3" value="0" step="0.01" required></div>
-                <div><label class="block text-sm font-semibold mb-2">Password</label><input type="password" id="addPassword" class="input-field w-full px-4 py-3" required minlength="4"></div>
-                <button type="submit" class="btn-success w-full py-3 font-medium">Create User</button>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500 block mb-2">Full Legal Name</label>
+                        <input type="text" id="addName" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500" required>
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500 block mb-2">Alias / Username</label>
+                        <input type="text" id="addUsername" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-500 block mb-2">Initial Credit ($)</label>
+                    <input type="number" id="addBalance" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500" step="0.01" required>
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-500 block mb-2">Security Passcode</label>
+                    <input type="password" id="addPassword" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500" required>
+                </div>
+                <button type="submit" class="w-full bg-yellow-500 text-black font-bold py-4 rounded-2xl mt-4 hover:bg-yellow-400 transition">Establish Identity</button>
             </form>
         </div>
     </div>
 
-    <!-- Edit User Modal -->
-    <div id="editUserModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-content card p-6" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold">Edit User</h3>
-                <button onclick="closeModalById('editUserModal')" class="btn-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
-            </div>
+    <div id="editUserModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-6">
+        <div class="glass max-w-md w-full p-8 rounded-[2rem] modal-animate">
+            <h3 class="text-xl font-bold mb-8">Node Modification</h3>
             <form id="editUserForm" class="space-y-4">
                 <input type="hidden" id="editUserId">
-                <div><label class="block text-sm font-semibold mb-2">Name</label><input type="text" id="editName" class="input-field w-full px-4 py-3" required></div>
-                <div><label class="block text-sm font-semibold mb-2">Username</label><input type="text" id="editUsername" class="input-field w-full px-4 py-3" required></div>
-                <div><label class="block text-sm font-semibold mb-2">Balance ($)</label><input type="number" id="editBalance" class="input-field w-full px-4 py-3" step="0.01" required></div>
-                <div><label class="block text-sm font-semibold mb-2">New Password (blank = keep)</label><input type="password" id="editPassword" class="input-field w-full px-4 py-3"></div>
+                <input type="text" id="editName" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500 mb-4" placeholder="Name">
+                <input type="text" id="editUsername" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500 mb-4" placeholder="Username">
+                <input type="number" id="editBalance" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500 mb-4" placeholder="Balance">
                 <div class="flex gap-3">
-                    <button type="submit" class="btn-primary flex-1 py-3 font-medium">Save Changes</button>
-                    <button type="button" onclick="closeModalById('editUserModal')" class="btn-secondary flex-1 py-3 font-medium">Cancel</button>
+                    <button type="submit" class="flex-1 bg-yellow-500 text-black font-bold py-3.5 rounded-2xl hover:bg-yellow-400 transition">Update</button>
+                    <button type="button" onclick="closeModalById('editUserModal')" class="flex-1 bg-white/5 text-white font-bold py-3.5 rounded-2xl transition">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
-
-    <!-- Delete Modal -->
-    <div id="deleteModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-content card p-6" onclick="event.stopPropagation()" class="text-center">
-            <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background:#fee2e2"><svg class="w-8 h-8" style="color:var(--danger)" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></div>
-            <h3 class="text-xl font-bold mb-2">Delete User?</h3>
-            <p class="mb-6 text-sm" style="color:var(--text-secondary)">This cannot be undone.</p>
-            <input type="hidden" id="deleteUserId">
-            <div class="flex gap-3">
-                <button onclick="confirmDelete()" class="btn-danger flex-1 py-3 font-medium">Delete</button>
-                <button onclick="closeModalById('deleteModal')" class="btn-secondary flex-1 py-3 font-medium">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Send Money Modal -->
-    <div id="sendMoneyModal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-content card p-6" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold">Send Money</h3>
-                <button onclick="closeModalById('sendMoneyModal')" class="btn-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
-            </div>
-            <form id="sendMoneyForm" class="space-y-4">
-                <input type="hidden" id="sendMoneyUserId">
-                <p id="sendMoneyInfo" class="text-sm p-3 rounded-lg" style="background:var(--bg-tertiary);color:var(--text-secondary)"></p>
-                <div><label class="block text-sm font-semibold mb-2">Amount ($)</label><input type="number" id="sendMoneyAmount" class="input-field w-full px-4 py-3" step="0.01" required placeholder="Negative = deduct"></div>
-                <div><label class="block text-sm font-semibold mb-2">Note</label><input type="text" id="sendMoneyNote" class="input-field w-full px-4 py-3" required placeholder="Reason..."></div>
-                <button type="submit" class="btn-primary w-full py-3 font-medium">Process</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="toastContainer"></div>
 
     <script type="module">
         import { neon } from 'https://esm.sh/@neondatabase/serverless';
         const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
 
+        // Check login
+        if (!sessionStorage.getItem('bek_admin')) window.location.href = 'admin.html';
+
+        let deleteId = null;
+
+        // --- Custom UI Controllers (No alert() replacements) ---
+
+        const notify = (msg, type = 'success') => {
+            const area = document.getElementById('notification-area');
+            const item = document.createElement('div');
+            item.className = `toast-item glass px-6 py-4 rounded-2xl shadow-2xl border-l-4 min-w-[300px] flex items-center gap-3 ${type === 'success' ? 'border-green-500' : 'border-red-500'}`;
+            item.innerHTML = `
+                <div class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} animate-pulse"></div>
+                <div class="text-sm font-semibold">${msg}</div>
+            `;
+            area.appendChild(item);
+            setTimeout(() => { item.style.opacity = '0'; item.style.transform = 'translateX(20px)'; setTimeout(() => item.remove(), 300); }, 4000);
+        };
+
+        window.openModal = (id) => {
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('flex');
+        };
+
+        window.closeModalById = (id) => {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
+        };
+
+        window.confirmAction = (msg, onConfirm) => {
+            document.getElementById('confirm-msg').textContent = msg;
+            openModal('security-confirm');
+            const btn = document.getElementById('confirm-proceed');
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            newBtn.addEventListener('click', () => {
+                onConfirm();
+                closeConfirm();
+            });
+        };
+
+        window.closeConfirm = () => closeModalById('security-confirm');
+
+        // --- Database Logic ---
+
         function hashPassword(input) {
-            let h = 0;
-            input = input.toUpperCase().replace(/[^A-Z]/g, '');
+            let h = 0; input = input.toUpperCase().replace(/[^A-Z]/g, '');
             for (let i = 0; i < input.length; i++) h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
             return h.toString().padStart(7, '0');
         }
 
-        // Auth check
-        if (!sessionStorage.getItem('bek_admin')) { window.location.href = 'admin.html'; }
-
-        // DB helpers
-        async function getUsers() {
-            try { 
-                const r = await sql`SELECT * FROM users ORDER BY id`; 
-                return r.map(row => ({...row, balance: parseFloat(row.balance)})); 
-            } catch(e) { console.error(e); return []; }
-        }
-
-        async function getStats() {
+        async function loadPanel() {
             try {
-                const uc = await sql`SELECT COUNT(*)::int as c FROM users`;
-                const tb = await sql`SELECT COALESCE(SUM(balance), 0)::decimal as t FROM users`;
-                const tc = await sql`SELECT COUNT(*)::int as c FROM transactions`;
-                const today = new Date().toISOString().split('T')[0];
-                const at = await sql`SELECT COUNT(DISTINCT user_id)::int as c FROM transactions WHERE created_at >= ${today}::date`;
-                return { users: parseInt(uc[0]?.c||0), balance: parseFloat(tb[0]?.t||0), txns: parseInt(tc[0]?.c||0), active: parseInt(at[0]?.c||0) };
-            } catch(e) { return {users:0,balance:0,txns:0,active:0}; }
-        }
+                const users = await sql`SELECT * FROM users ORDER BY id DESC`;
+                const txns = await sql`SELECT t.*, u.name as user_name FROM transactions t LEFT JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC LIMIT 15`;
+                
+                const stats = {
+                    users: users.length,
+                    balance: users.reduce((acc, u) => acc + parseFloat(u.balance || 0), 0)
+                };
 
-        async function getAllTxns() {
-            try {
-                const r = await sql`SELECT t.*, u.username as userName FROM transactions t JOIN users u ON t.user_id=u.id ORDER BY t.created_at DESC LIMIT 100`;
-                return r.map(row => ({...row, date: row.created_at, amount: parseFloat(row.amount)}));
-            } catch(e) { return []; }
-        }
-
-        // FIXED: Uses tagged template literals for proper type handling
-        async function addUser(name, username, balance, password) {
-            try {
-                await sql`
-                    INSERT INTO users (name, username, password_hash, balance) 
-                    VALUES (${name}, ${username}, ${hashPassword(password)}, ${balance}::numeric(15,2))
-                `;
-                return { success: true };
-            } catch(e) { return { success: false, message: e.message }; }
-        }
-
-        // FIXED: Update user with proper type casting
-        async function updateUser(id, updates) {
-            try {
-                const current = (await sql`SELECT * FROM users WHERE id = ${id}`)[0];
-                if (!current) return { success: false, message: 'User not found' };
-
-                let newName = updates.name !== undefined ? updates.name : current.name;
-                let newUsername = updates.username !== undefined ? updates.username : current.username;
-                let newBalance = updates.balance !== undefined ? parseFloat(updates.balance) : parseFloat(current.balance);
-
-                if (updates.password && updates.password.length > 0) {
-                    const newHash = hashPassword(updates.password);
-                    await sql`
-                        UPDATE users 
-                        SET name = ${newName}, 
-                            username = ${newUsername}, 
-                            password_hash = ${newHash},
-                            balance = ${newBalance}::numeric(15,2)
-                        WHERE id = ${id}
-                    `;
-                } else {
-                    await sql`
-                        UPDATE users 
-                        SET name = ${newName}, 
-                            username = ${newUsername}, 
-                            balance = ${newBalance}::numeric(15,2)
-                        WHERE id = ${id}
-                    `;
-                }
-
-                return { success: true };
-            } catch(e) { 
-                console.error('Update error:', e);
-                return { success: false, message: e.message }; 
+                document.getElementById('totalUsers').textContent = stats.users;
+                document.getElementById('totalBalance').textContent = `$${stats.balance.toLocaleString()}`;
+                
+                renderTable(users);
+                renderLogs(txns);
+            } catch (err) {
+                notify('Database Connection Interrupted', 'error');
             }
         }
 
-        async function deleteUser(id) {
-            try { 
-                await sql`DELETE FROM transactions WHERE user_id=${id}`; 
-                await sql`DELETE FROM users WHERE id=${id}`; 
-                return { success: true }; 
-            } catch(e) { return { success:false, message:e.message }; }
-        }
-
-        async function addAdjustment(userId, amount, note) {
-            try {
-                const numAmt = parseFloat(amount);
-                await sql`
-                    INSERT INTO transactions (user_id, type, description, amount) 
-                    VALUES (${userId}, 'adjustment', ${note}, ${numAmt}::numeric(15,2))
-                `;
-                await sql`UPDATE users SET balance = balance + ${numAmt}::numeric(15,2) WHERE id=${userId}`;
-                return { success:true };
-            } catch(e) { return { success:false, message:e.message }; }
-        }
-
-        // UI
-        function showToast(msg, type='info') {
-            const c=document.createElement('div'); c.className=`toast toast-${type}`; c.textContent=msg;
-            document.getElementById('toastContainer').appendChild(c);
-            setTimeout(()=>{c.style.opacity='0';setTimeout(()=>c.remove(),250);},3000);
-        }
-
-        function openModal(id){document.getElementById(id).classList.add('active');document.body.style.overflow='hidden';}
-        function closeModalById(id){document.getElementById(id).classList.remove('active');document.body.style.overflow='';}
-        function closeModal(e){if(!e||e.target===e.currentTarget){e.currentTarget.classList.remove('active');document.body.style.overflow='';}}
-        function adminLogout(){sessionStorage.removeItem('bek_admin');window.location.href='admin.html';}
-
-        window.adminLogout=adminLogout;
-        window.openModal=openModal;
-        window.closeModalById=closeModalById;
-        window.exportDB=exportDB;
-
-        // Render table
-        async function renderTable(){
-            const search=(document.getElementById('searchUsers').value||'').toLowerCase();
-            let users=await getUsers();
-            if(search) users=users.filter(u=>u.name.toLowerCase().includes(search)||u.username.toLowerCase().includes(search));
-
-            document.getElementById('userTableBody').innerHTML=users.map(u=>`
-                <tr>
-                    <td class="mono text-sm">#${u.id}</td>
-                    <td class="font-semibold">${u.name}</td>
-                    <td>@${u.username}</td>
-                    <td class="mono text-xs" style="color:var(--text-muted)">${u.password_hash}</td>
-                    <td class="text-right tabular-nums font-semibold" style="color:var(--success)">$${u.balance.toLocaleString('en-US',{minimumFractionDigits:2})}</td>
-                    <td><span class="badge ${u.status==='active'?'badge-success':'badge-danger'}">${u.status}</span></td>
-                    <td>
-                        <div class="flex gap-1">
-                            <button onclick="editUserFunc(${u.id})" class="btn-icon" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
-                            <button onclick="sendMoneyFunc(${u.id})" class="btn-icon" title="Send Money"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg></button>
-                            <button onclick="deleteUserFunc(${u.id})" class="btn-icon" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+        function renderTable(data) {
+            const list = data || [];
+            document.getElementById('userTableBody').innerHTML = list.map(u => `
+                <tr class="data-row transition">
+                    <td class="p-5 font-mono text-[10px] text-slate-500">#${u.id}</td>
+                    <td class="p-5">
+                        <div class="font-bold text-white text-sm">${u.name}</div>
+                        <div class="text-[10px] text-slate-500 tracking-wider">@${u.username}</div>
+                    </td>
+                    <td class="p-5 text-right font-mono text-yellow-500 font-bold">$${parseFloat(u.balance).toLocaleString()}</td>
+                    <td class="p-5">
+                        <div class="flex justify-center gap-3">
+                            <button onclick="editUserFunc(${u.id})" class="text-slate-400 hover:text-white transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            </button>
+                            <button onclick="deleteUserFunc(${u.id}, '${u.username}')" class="text-red-500/50 hover:text-red-500 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
                         </div>
                     </td>
                 </tr>
             `).join('');
         }
 
-        async function renderTxns(){
-            const txns=await getAllTxns();
-            const tbody=document.getElementById('txnTableBody');
-            if(!txns.length){tbody.innerHTML='<tr><td colspan="5" class="text-center py-10" style="color:var(--text-muted)">No transactions</td></tr>';return;}
-            tbody.innerHTML=txns.map(t=>`
-                <tr>
-                    <td class="font-semibold">${t.userName||'Unknown'}</td>
-                    <td><span class="badge ${t.type.includes('deposit')||t.type==='received'?'badge-success':t.type==='adjustment'?'badge-warning':'badge-danger'}">${t.type}</span></td>
-                    <td>${t.description}</td>
-                    <td class="text-right tabular-nums font-semibold" style="color:${t.type.includes('deposit')||t.type==='received'?'var(--success)':'var(--danger)'}">${t.type.includes('deposit')||t.type==='received'?'+':'-'}$${t.amount.toFixed(2)}</td>
-                    <td class="text-sm" style="color:var(--text-muted)">${new Date(t.date).toLocaleString()}</td>
-                </tr>
+        function renderLogs(txns) {
+            document.getElementById('txnTableBody').innerHTML = txns.map(t => `
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-tighter">${t.type}</span>
+                        <span class="text-xs font-mono ${t.amount > 0 ? 'text-green-500' : 'text-red-500'}">
+                            ${t.amount > 0 ? '+' : ''}${parseFloat(t.amount).toFixed(2)}
+                        </span>
+                    </div>
+                    <div class="text-xs text-white/80 font-medium">${t.user_name || 'System'}: ${t.description}</div>
+                </div>
             `).join('');
         }
 
-        // Action functions
-        async function editUserFunc(id){
-            const users=await getUsers();
-            const u=users.find(x=>x.id===id);
-            if(u){
-                document.getElementById('editUserId').value=id;
-                document.getElementById('editName').value=u.name;
-                document.getElementById('editUsername').value=u.username;
-                document.getElementById('editBalance').value=u.balance;
-                document.getElementById('editPassword').value='';
+        window.deleteUserFunc = (id, name) => {
+            confirmAction(`Purging @${name} will delete all associated ledger history. This is permanent.`, async () => {
+                try {
+                    await sql`DELETE FROM transactions WHERE user_id = ${id}`;
+                    await sql`DELETE FROM users WHERE id = ${id}`;
+                    notify('Identity Purged');
+                    loadPanel();
+                } catch (e) { notify('Operation Failed', 'error'); }
+            });
+        };
+
+        window.editUserFunc = async (id) => {
+            const user = (await sql`SELECT * FROM users WHERE id = ${id}`)[0];
+            if (user) {
+                document.getElementById('editUserId').value = id;
+                document.getElementById('editName').value = user.name;
+                document.getElementById('editUsername').value = user.username;
+                document.getElementById('editBalance').value = user.balance;
                 openModal('editUserModal');
             }
-        }
+        };
 
-        async function sendMoneyFunc(id){
-            const users=await getUsers();
-            const u=users.find(x=>x.id===id);
-            if(u){
-                document.getElementById('sendMoneyUserId').value=id;
-                document.getElementById('sendMoneyInfo').textContent=`${u.name} (@${u.username}) | Balance: $${u.balance.toLocaleString('en-US',{minimumFractionDigits:2})}`;
-                document.getElementById('sendMoneyForm').reset();
-                openModal('sendMoneyModal');
-            }
-        }
-
-        function deleteUserFunc(id){
-            document.getElementById('deleteUserId').value=id;
-            openModal('deleteModal');
-        }
-
-        async function confirmDelete(){
-            const id=document.getElementById('deleteUserId').value;
-            const result = await deleteUser(id);
-            if(result.success){
-                showToast('User deleted','success');
-                closeModalById('deleteModal');
-                await loadPanel();
-            } else {
-                showToast(result.message || 'Delete failed','error');
-            }
-        }
-
-        async function exportDB(){
-            showToast('Exporting...','info');
-            const data={users:await getUsers(), exportedAt:new Date().toISOString()};
-            const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-            const url=URL.createObjectURL(blob);
-            const a=document.createElement('a');a.href=url;a.download=`bek_admin_${new Date().toISOString().split('T')[0]}.json`;a.click();URL.revokeObjectURL(url);
-            showToast('Exported!','success');
-        }
-
-        // Forms
-        document.getElementById('addUserForm').addEventListener('submit',async(e)=>{
+        document.getElementById('addUserForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const r=await addUser(
-                document.getElementById('addName').value.trim(),
-                document.getElementById('addUsername').value.trim(),
-                document.getElementById('addBalance').value,
-                document.getElementById('addPassword').value
-            );
-            if(r.success){showToast('User created!','success');closeModalById('addUserModal');e.target.reset();await loadPanel();}
-            else{showToast(r.message||'Failed','error');}
+            try {
+                await sql`INSERT INTO users (name, username, balance, password_hash) VALUES (
+                    ${document.getElementById('addName').value}, 
+                    ${document.getElementById('addUsername').value}, 
+                    ${document.getElementById('addBalance').value}, 
+                    ${hashPassword(document.getElementById('addPassword').value)}
+                )`;
+                notify('User Provisioned');
+                closeModalById('addUserModal');
+                loadPanel();
+            } catch (e) { notify('Provisioning Failure', 'error'); }
         });
 
-        document.getElementById('editUserForm').addEventListener('submit',async(e)=>{
+        document.getElementById('editUserForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const id = document.getElementById('editUserId').value;
-            const updates = {
-                name: document.getElementById('editName').value.trim(),
-                username: document.getElementById('editUsername').value.trim(),
-                balance: parseFloat(document.getElementById('editBalance').value),
-                password: document.getElementById('editPassword').value
-            };
-
-            // Validate
-            if(!updates.name || !updates.username || isNaN(updates.balance)){
-                showToast('Please fill all fields correctly','error');
-                return;
-            }
-
-            const result = await updateUser(id, updates);
-            
-            if(result.success){
-                showToast('User updated successfully!','success');
+            try {
+                await sql`UPDATE users SET name=${document.getElementById('editName').value}, username=${document.getElementById('editUsername').value}, balance=${document.getElementById('editBalance').value} WHERE id=${document.getElementById('editUserId').value}`;
+                notify('Configuration Updated');
                 closeModalById('editUserModal');
-                await loadPanel(); // Refresh table to show changes
-            } else {
-                showToast(result.message || 'Update failed','error');
-            }
+                loadPanel();
+            } catch (e) { notify('Update Failure', 'error'); }
         });
 
-        document.getElementById('sendMoneyForm').addEventListener('submit',async(e)=>{
-            e.preventDefault();
-            const r=await addAdjustment(
-                document.getElementById('sendMoneyUserId').value,
-                document.getElementById('sendMoneyAmount').value,
-                document.getElementById('sendMoneyNote').value
-            );
-            if(r.success){showToast('Processed!','success');closeModalById('sendMoneyModal');await loadPanel();}
-            else{showToast(r.message||'Failed','error');}
-        });
-
-        // Load panel
-        async function loadPanel(){
-            const s=await getStats();
-            document.getElementById('totalUsers').textContent=s.users;
-            document.getElementById('totalBalance').textContent='$'+s.balance.toLocaleString('en-US',{minimumFractionDigits:2});
-            document.getElementById('totalTxns').textContent=s.txns;
-            document.getElementById('activeToday').textContent=s.active;
-            await renderTable();
-            await renderTxns();
-        }
-
-        // Expose functions
-        window.editUserFunc=editUserFunc;
-        window.sendMoneyFunc=sendMoneyFunc;
-        window.deleteUserFunc=deleteUserFunc;
-        window.confirmDelete=confirmDelete;
-
-        // Init
-        await loadPanel();
-        document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.active').forEach(m=>m.classList.remove('active'));});
+        window.adminLogout = () => { sessionStorage.removeItem('bek_admin'); window.location.href = 'admin.html'; };
+        
+        loadPanel();
     </script>
 </body>
 </html>
