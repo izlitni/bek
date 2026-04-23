@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BEK — Banket El Kes7in</title>
+    <script>
+        // Strict Origin Enforcement
+        (function() {
+            const allowed = 'bekbank.vercel.app';
+            const current = window.location.hostname;
+            if (current !== allowed && current !== 'localhost' && current !== '127.0.0.1') {
+                window.location.replace('https://' + allowed);
+            }
+        })();
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
