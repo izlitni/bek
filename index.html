@@ -3,231 +3,368 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BEK - Banket El Kes7in</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script type="module">
-        import { neon } from 'https://esm.sh/@neondatabase/serverless';
-        window.neonSql = neon;
-        
-        // Initialize DB connection
-        const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
-        window.dbSql = sql;
-    </script>
-
+    <title>BEK — Banket El Kes7in</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f1f5f9;
-            --accent: #2563eb;
-            --accent-bg: #eff6ff;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --text-muted: #94a3b8;
-            --border: #e2e8f0;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
+            --navy: #0c1e3c;
+            --navy-mid: #152d5a;
+            --navy-light: #1e3f7a;
+            --gold: #c8963c;
+            --gold-light: #e4b96a;
+            --gold-pale: #f5e9d0;
+            --pearl: #f7f4ee;
+            --white: #ffffff;
+            --text-primary: #0c1e3c;
+            --text-secondary: #4a5568;
+            --text-muted: #8896a8;
+            --border: #e0dbd0;
+            --success: #0d9e6e;
         }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Figtree', sans-serif; background: var(--white); color: var(--text-primary); line-height: 1.65; overflow-x: hidden; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
 
-        * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
-        body { background-color: var(--bg-primary); color: var(--text-primary); min-height: 100vh; margin: 0; line-height: 1.6; }
+        /* ─── NAVBAR ─── */
+        .navbar {
+            position: fixed; top: 0; width: 100%; z-index: 100;
+            padding: 0 5%;
+            background: rgba(12, 30, 60, 0.96);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(200,150,60,0.15);
+            display: flex; align-items: center; justify-content: space-between;
+            height: 70px;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .nav-logo-mark {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 800; font-size: 18px; color: var(--navy);
+        }
+        .nav-logo-text { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 20px; color: var(--white); letter-spacing: 0.03em; }
+        .nav-logo-sub { font-size: 10px; font-weight: 400; color: rgba(200,150,60,0.8); letter-spacing: 0.12em; text-transform: uppercase; margin-top: -2px; display: block; }
+        .nav-links { display: flex; align-items: center; gap: 32px; }
+        .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--gold-light); }
+        .nav-ctas { display: flex; align-items: center; gap: 12px; }
+        .btn-nav-ghost { background: transparent; border: 1.5px solid rgba(200,150,60,0.4); color: rgba(255,255,255,0.85); padding: 9px 22px; border-radius: 8px; font-family: 'Figtree', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        .btn-nav-ghost:hover { border-color: var(--gold); color: var(--gold-light); }
+        .btn-nav-primary { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--navy); padding: 9px 22px; border-radius: 8px; font-family: 'Figtree', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        .btn-nav-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,150,60,0.4); }
 
-        .card { background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.03); }
-        .card-elevated { box-shadow: 0 4px 20px rgba(37,99,235,0.08), 0 1px 3px rgba(0,0,0,0.04); }
+        /* ─── HERO ─── */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 55%, #1a3560 100%);
+            position: relative; overflow: hidden;
+            display: flex; align-items: center;
+            padding: 100px 5% 80px;
+        }
+        .hero-grid {
+            position: absolute; inset: 0; opacity: 0.04;
+            background-image: linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        .hero-orb-1 { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(200,150,60,0.12) 0%, transparent 65%); top: -100px; right: -150px; pointer-events: none; }
+        .hero-orb-2 { position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(30,63,122,0.8) 0%, transparent 70%); bottom: -100px; left: -80px; pointer-events: none; }
+        .hero-content { position: relative; max-width: 680px; z-index: 1; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(200,150,60,0.12); border: 1px solid rgba(200,150,60,0.3);
+            color: var(--gold-light); padding: 6px 16px; border-radius: 100px;
+            font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+            margin-bottom: 28px;
+        }
+        .hero-badge::before { content: ''; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; }
+        .hero h1 { font-size: clamp(42px, 6vw, 72px); line-height: 1.1; color: var(--white); font-weight: 700; margin-bottom: 24px; }
+        .hero h1 span { color: var(--gold-light); }
+        .hero p { font-size: 18px; color: rgba(255,255,255,0.65); font-weight: 400; max-width: 520px; margin-bottom: 44px; line-height: 1.75; }
+        .hero-ctas { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .btn-hero-primary {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy); padding: 16px 36px; border-radius: 10px;
+            font-family: 'Figtree', sans-serif; font-size: 16px; font-weight: 700;
+            border: none; cursor: pointer; transition: all 0.25s; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(200,150,60,0.45); }
+        .btn-hero-secondary {
+            background: transparent; border: 2px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.85);
+            padding: 15px 36px; border-radius: 10px; font-family: 'Figtree', sans-serif;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none;
+        }
+        .btn-hero-secondary:hover { border-color: rgba(255,255,255,0.6); color: var(--white); }
+        .hero-stats { display: flex; gap: 40px; margin-top: 64px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; }
+        .hero-stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--white); }
+        .hero-stat-label { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 4px; font-weight: 500; letter-spacing: 0.04em; }
+        .hero-visual {
+            position: absolute; right: 5%; top: 50%; transform: translateY(-50%);
+            width: 420px; display: none;
+        }
+        @media(min-width: 1100px) { .hero-visual { display: block; } }
 
-        .input-field { background-color: var(--bg-secondary); border: 1.5px solid var(--border); color: var(--text-primary); transition: all 0.2s ease; border-radius: 10px; }
-        .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
-        .input-field::placeholder { color: var(--text-muted); }
+        /* ─── CARD FLOAT ─── */
+        .bank-card {
+            background: linear-gradient(135deg, #1a3560, #0c1e3c);
+            border-radius: 20px; padding: 32px; color: white;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            border: 1px solid rgba(200,150,60,0.2);
+            position: relative; overflow: hidden;
+            animation: float 4s ease-in-out infinite;
+        }
+        .bank-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; background: radial-gradient(circle, rgba(200,150,60,0.2), transparent 70%); }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        .card-chip { width: 44px; height: 34px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 6px; margin-bottom: 40px; }
+        .card-number { font-size: 16px; letter-spacing: 0.2em; color: rgba(255,255,255,0.7); margin-bottom: 24px; font-weight: 500; }
+        .card-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+        .card-balance-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.45); }
+        .card-balance { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--gold-light); }
+        .card-name { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.8); }
+        .mini-card {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 14px; padding: 20px; margin-top: -40px; margin-left: 60px;
+            color: var(--navy); box-shadow: 0 20px 50px rgba(200,150,60,0.3);
+        }
+        .mini-card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.65; margin-bottom: 6px; }
+        .mini-card-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
 
-        .btn-primary { background-color: var(--accent); color: white; font-weight: 600; border-radius: 10px; transition: all 0.2s ease; border: none; cursor: pointer; }
-        .btn-primary:hover { background-color: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.35); }
-        .btn-danger { background-color: var(--danger); color: white; font-weight: 600; border-radius: 10px; transition: all 0.2s ease; border: none; cursor: pointer; }
-        .btn-danger:hover { background-color: #dc2626; box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
-        .btn-secondary { background-color: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); font-weight: 500; border-radius: 10px; cursor: pointer; }
-        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); background-color: var(--accent-bg); }
-        .btn-icon { padding: 8px; border-radius: 8px; transition: all 0.15s ease; color: var(--text-muted); background: none; border: none; cursor: pointer; }
-        .btn-icon:hover { background-color: var(--bg-tertiary); color: var(--accent); }
+        /* ─── FEATURES ─── */
+        .section { padding: 100px 5%; }
+        .section-label { font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+        .section-title { font-size: clamp(32px, 4vw, 48px); color: var(--navy); margin-bottom: 16px; line-height: 1.2; }
+        .section-subtitle { font-size: 17px; color: var(--text-secondary); max-width: 520px; line-height: 1.7; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 28px; margin-top: 64px; }
+        .feature-card {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: 20px; padding: 36px 32px;
+            transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .feature-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(200,150,60,0.03), transparent); opacity: 0; transition: opacity 0.3s; }
+        .feature-card:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 20px 50px rgba(12,30,60,0.08); }
+        .feature-card:hover::after { opacity: 1; }
+        .feature-icon {
+            width: 56px; height: 56px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 24px;
+        }
+        .feature-icon.navy { background: rgba(12,30,60,0.07); }
+        .feature-icon.gold { background: rgba(200,150,60,0.1); }
+        .feature-icon svg { width: 26px; height: 26px; }
+        .feature-icon.navy svg { color: var(--navy); }
+        .feature-icon.gold svg { color: var(--gold); }
+        .feature-card h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--navy); margin-bottom: 12px; }
+        .feature-card p { font-size: 15px; color: var(--text-secondary); line-height: 1.7; }
 
-        .login-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 50%, #e0e7ff 100%); }
-        .grid-pattern { width: 100%; height: 100%; background-image: radial-gradient(circle at 1px 1px, rgba(37,99,235,0.08) 1px, transparent 0); background-size: 32px 32px; }
-        .floating-shape { position: absolute; border-radius: 50%; opacity: 0.6; }
-        .shape-1 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%); top: -150px; right: -100px; }
-        .shape-2 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%); bottom: -120px; left: -80px; }
+        /* ─── TRUST BAND ─── */
+        .trust-band { background: var(--pearl); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 28px 5%; }
+        .trust-band-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+        .trust-item { display: flex; align-items: center; gap: 12px; color: var(--text-secondary); font-size: 14px; font-weight: 500; }
+        .trust-item svg { width: 20px; height: 20px; color: var(--success); flex-shrink: 0; }
 
-        .page { display: none; animation: fadeSlideIn 0.3s ease-out; }
-        .page.active { display: block; }
-        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        /* ─── CTA SECTION ─── */
+        .cta-section {
+            background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+            padding: 100px 5%; text-align: center; position: relative; overflow: hidden;
+        }
+        .cta-section::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(200,150,60,0.08) 0%, transparent 60%); }
+        .cta-section h2 { font-size: clamp(32px, 4vw, 52px); color: var(--white); margin-bottom: 16px; position: relative; }
+        .cta-section p { font-size: 18px; color: rgba(255,255,255,0.6); max-width: 500px; margin: 0 auto 44px; position: relative; }
+        .cta-section-btns { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; position: relative; }
 
-        .logo-box { width: 56px; height: 56px; background-color: var(--accent-bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
-        .logo-box svg { color: var(--accent); }
+        /* ─── FOOTER ─── */
+        footer { background: #060f1e; padding: 60px 5% 30px; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; }
+        .footer-top { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 48px; padding-bottom: 48px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .footer-brand p { font-size: 14px; color: rgba(255,255,255,0.35); max-width: 240px; margin-top: 16px; line-height: 1.7; }
+        .footer-col h4 { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 20px; }
+        .footer-col a { display: block; font-size: 14px; color: rgba(255,255,255,0.55); text-decoration: none; margin-bottom: 12px; transition: color 0.2s; }
+        .footer-col a:hover { color: var(--gold-light); }
+        .footer-bottom { padding-top: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .footer-bottom p { font-size: 13px; color: rgba(255,255,255,0.25); }
 
-        button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-        @media (max-width: 640px) { .card { margin: 12px; border-radius: 14px; } }
-        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+        /* ─── RESPONSIVE ─── */
+        @media(max-width: 768px) {
+            .nav-links { display: none; }
+            .hero-stats { gap: 24px; }
+            .section { padding: 70px 5%; }
+        }
     </style>
 </head>
 <body>
-    <div class="login-bg"><div class="grid-pattern"></div><div class="floating-shape shape-1"></div><div class="floating-shape shape-2"></div></div>
 
-    <!-- LOGIN PAGE -->
-    <div id="loginPage" class="page active">
-        <div class="min-h-screen flex items-center justify-center p-4">
-            <div class="card card-elevated p-8 w-full max-w-md">
-                <div class="text-center mb-8">
-                    <div class="logo-box mx-auto mb-5">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                        </svg>
-                    </div>
-                    <h1 class="text-3xl font-bold tracking-tight">BEK</h1>
-                    <p class="text-sm mt-1" style="color: var(--text-secondary)">Banket el Kes7in</p>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">
+            <div class="nav-logo-mark">B</div>
+            <div>
+                <div class="nav-logo-text">BEK</div>
+                <span class="nav-logo-sub">Banket el Kes7in</span>
+            </div>
+        </a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#security">Security</a>
+            <a href="admin.html">Admin</a>
+        </div>
+        <div class="nav-ctas">
+            <a href="sign-in.html" class="btn-nav-ghost">Sign In</a>
+            <a href="sign-up.html" class="btn-nav-primary">Open Account</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-grid"></div>
+        <div class="hero-orb-1"></div>
+        <div class="hero-orb-2"></div>
+        <div class="hero-content">
+            <div class="hero-badge">Trusted Digital Banking</div>
+            <h1>Banking Made<br><span>Effortless</span><br>for Everyone</h1>
+            <p>BEK delivers modern banking with instant transfers, real-time balance tracking, and enterprise-grade security — all in one place.</p>
+            <div class="hero-ctas">
+                <a href="sign-up.html" class="btn-hero-primary">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Open Free Account
+                </a>
+                <a href="sign-in.html" class="btn-hero-secondary">Sign In →</a>
+            </div>
+            <div class="hero-stats">
+                <div>
+                    <div class="hero-stat-num">100%</div>
+                    <div class="hero-stat-label">Secure Transfers</div>
                 </div>
-
-                <form id="loginForm" class="space-y-5">
+                <div>
+                    <div class="hero-stat-num">24/7</div>
+                    <div class="hero-stat-label">Account Access</div>
+                </div>
+                <div>
+                    <div class="hero-stat-num">$0</div>
+                    <div class="hero-stat-label">Monthly Fees</div>
+                </div>
+            </div>
+        </div>
+        <!-- Floating card visual -->
+        <div class="hero-visual">
+            <div class="bank-card">
+                <div class="card-chip"></div>
+                <div class="card-number">•••• •••• •••• 4291</div>
+                <div class="card-bottom">
                     <div>
-                        <label class="block text-sm font-semibold mb-2">Username</label>
-                        <input type="text" id="username" class="input-field w-full px-4 py-3" placeholder="Enter username" required autocomplete="username">
+                        <div class="card-balance-label">Available Balance</div>
+                        <div class="card-balance">$12,450.00</div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-2">Password</label>
-                        <div class="relative">
-                            <input type="password" id="password" class="input-field w-full px-4 py-3 pr-12" placeholder="Enter password" required autocomplete="current-password">
-                            <button type="button" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 btn-icon" aria-label="Toggle password">
-                                <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                </svg>
-                            </button>
+                    <div class="card-name">BEK Member</div>
+                </div>
+            </div>
+            <div class="mini-card">
+                <div class="mini-card-title">Last Transfer</div>
+                <div class="mini-card-val">+ $1,200.00</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRUST BAND -->
+    <div class="trust-band">
+        <div class="trust-band-inner">
+            <div class="trust-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                Bank-Level Encryption
+            </div>
+            <div class="trust-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                Secure Authentication
+            </div>
+            <div class="trust-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                Instant Transfers
+            </div>
+            <div class="trust-item">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Full Transaction History
+            </div>
+        </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section class="section" id="features" style="background: var(--pearl);">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div class="section-label">Why BEK</div>
+            <h2 class="section-title">Everything You Need<br>in One Account</h2>
+            <p class="section-subtitle">Powerful tools designed for modern banking. Simple, fast, and secure by design.</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon navy">
+                        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    </div>
+                    <h3>Instant Transfers</h3>
+                    <p>Send money to any BEK account in seconds. No waiting periods, no hidden fees — just fast, reliable transfers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon gold">
+                        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <h3>Real-Time Balance</h3>
+                    <p>Track your balance and every transaction the moment it happens. Full visibility into your finances, always.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon navy">
+                        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </div>
+                    <h3>Bank-Grade Security</h3>
+                    <p>Your funds and data are protected with industry-standard encryption and secure authentication protocols.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="cta-section" id="security">
+        <h2>Ready to Get Started?</h2>
+        <p>Join BEK today and experience banking built for the modern world.</p>
+        <div class="cta-section-btns">
+            <a href="sign-up.html" class="btn-hero-primary">Open Your Account</a>
+            <a href="sign-in.html" class="btn-hero-secondary">Already a Member?</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a href="index.html" class="nav-logo" style="text-decoration:none;">
+                        <div class="nav-logo-mark">B</div>
+                        <div>
+                            <div class="nav-logo-text">BEK</div>
+                            <span class="nav-logo-sub">Banket el Kes7in</span>
                         </div>
-                    </div>
-                    <button type="submit" class="btn-primary w-full py-3 text-base">Sign In</button>
-                </form>
-
-                <div class="mt-6 text-center pt-5 border-t" style="border-color: var(--border)">
-                    <p class="text-sm" style="color: var(--text-secondary)">Don't have an account? <button type="button" onclick="showPage('registerPage')" style="color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600;" class="hover:underline">Register Now</button></p>
+                    </a>
+                    <p>Modern digital banking built with security and simplicity at its core.</p>
                 </div>
-
-                <div class="mt-6 flex items-center justify-center gap-2 text-xs" style="color: var(--text-muted)">
-                    <svg class="w-4 h-4" style="color: var(--success)" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                    Secure Banking Platform
+                <div class="footer-col">
+                    <h4>Account</h4>
+                    <a href="sign-in.html">Sign In</a>
+                    <a href="sign-up.html">Open Account</a>
+                    <a href="dashboard.html">Dashboard</a>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- REGISTER PAGE -->
-    <div id="registerPage" class="page">
-        <div class="min-h-screen flex items-center justify-center p-4">
-            <div class="card card-elevated p-8 w-full max-w-md">
-                <div class="text-center mb-8">
-                    <h1 class="text-2xl font-bold tracking-tight">Create Account</h1>
-                    <p class="text-sm mt-2" style="color: var(--text-secondary)">Join BEK today</p>
-                </div>
-
-                <form id="registerForm" class="space-y-5">
-                    <div><label class="block text-sm font-semibold mb-2">Full Name</label><input type="text" id="regName" class="input-field w-full px-4 py-3" placeholder="John Doe" required></div>
-                    <div><label class="block text-sm font-semibold mb-2">Username</label><input type="text" id="regUsername" class="input-field w-full px-4 py-3" placeholder="Choose username" required></div>
-                    <div><label class="block text-sm font-semibold mb-2">Initial Deposit ($)</label><input type="number" id="regBalance" class="input-field w-full px-4 py-3" value="1000" min="0" step="0.01"></div>
-                    <div><label class="block text-sm font-semibold mb-2">Password</label><input type="password" id="regPassword" class="input-field w-full px-4 py-3" placeholder="Create password" required minlength="4"></div>
-                    <button type="submit" class="btn-primary w-full py-3 text-base">Create Account</button>
-                </form>
-
-                <div class="mt-6 text-center pt-5 border-t" style="border-color: var(--border)">
-                    <p class="text-sm" style="color: var(--text-secondary)">Already have an account? <button type="button" onclick="showPage('loginPage')" style="color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600;" class="hover:underline">Sign In</button></p>
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <a href="#features">Features</a>
+                    <a href="#security">Security</a>
+                    <a href="admin.html">Admin Portal</a>
                 </div>
             </div>
+            <div class="footer-bottom">
+                <p>© 2025 BEK — Banket el Kes7in. All rights reserved.</p>
+                <p style="color:rgba(255,255,255,0.15)">Secure · Reliable · Modern</p>
+            </div>
         </div>
-    </div>
-
-    <script type="module">
-        import { neon } from 'https://esm.sh/@neondatabase/serverless';
-        const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
-
-        // Hash function
-        function hashPassword(input) {
-            let h = 0;
-            input = input.toUpperCase().replace(/[^A-Z]/g, '');
-            for (let i = 0; i < input.length; i++) h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
-            return h.toString().padStart(7, '0');
-        }
-
-        // DB operations
-        async function verifyUser(username, password) {
-            try {
-                const r = await sql`SELECT * FROM users WHERE username = ${username} AND password_hash = ${hashPassword(password)}`;
-                if (r.length > 0) return { ...r[0], balance: parseFloat(r[0].balance) };
-                return null;
-            } catch(e) { console.error(e); return null; }
-        }
-
-        async function registerUser(name, username, balance, password) {
-            try {
-                const r = await sql`INSERT INTO users (name, username, password_hash, balance) VALUES (${name}, ${username}, ${hashPassword(password)}, ${balance}::decimal) RETURNING *`;
-                if (r.length > 0) return { success: true };
-                return { success: false, message: 'Failed' };
-            } catch(e) {
-                if (e.message?.includes('unique')) return { success: false, message: 'Username exists' };
-                return { success: false, message: e.message };
-            }
-        }
-
-        // UI Functions
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        function showToast(msg, type = 'info') {
-            const c = document.createElement('div');
-            c.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;padding:14px 20px;border-radius:12px;font-weight:500;background:#fff;border-left:4px solid ' + (type==='success'?'#10b981':type==='error'?'#ef4444':'#2563eb') + ';box-shadow:0 4px 20px rgba(0,0,0,0.1);animation:slideIn 0.25s ease-out;';
-            c.textContent = msg;
-            document.body.appendChild(c);
-            setTimeout(() => { c.style.opacity = '0'; setTimeout(() => c.remove(), 250); }, 3000);
-        }
-
-        function togglePassword() {
-            const inp = document.getElementById('password');
-            const icon = document.getElementById('eyeIcon');
-            inp.type = inp.type === 'password' ? 'text' : 'password';
-            icon.innerHTML = inp.type === 'text' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>' : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
-        }
-
-        // Expose to window
-        window.showPage = showPage;
-
-        // Login form
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const user = await verifyUser(document.getElementById('username').value.trim(), document.getElementById('password').value);
-            if (user) {
-                sessionStorage.setItem('bek_user', JSON.stringify(user));
-                showToast('Welcome back!', 'success');
-                setTimeout(() => window.location.href = 'dashboard.html', 500);
-            } else {
-                showToast('Invalid credentials', 'error');
-            }
-        });
-
-        // Register form
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const r = await registerUser(
-                document.getElementById('regName').value.trim(),
-                document.getElementById('regUsername').value.trim(),
-                document.getElementById('regBalance').value,
-                document.getElementById('regPassword').value
-            );
-            if (r.success) {
-                showToast('Account created! Please login.', 'success');
-                showPage('loginPage');
-                e.target.reset();
-            } else {
-                showToast(r.message || 'Registration failed', 'error');
-            }
-        });
-    </script>
+    </footer>
 </body>
 </html>
