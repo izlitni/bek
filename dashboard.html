@@ -196,7 +196,7 @@
 
         // Auth Logic
         const saved = sessionStorage.getItem('bek_user');
-        if (!saved) { window.location.href = 'index.html'; }
+        if (!saved) { window.location.href = 'index'; }
         currentUser = JSON.parse(saved);
 
         async function refreshUser() {
@@ -347,7 +347,7 @@
         window.openModal = (id) => { document.getElementById(id).classList.add('active'); };
         window.closeModalById = (id) => { document.getElementById(id).classList.remove('active'); };
         window.closeModal = (e) => { if(e.target === e.currentTarget) e.target.classList.remove('active'); };
-        window.logout = () => { sessionStorage.clear(); window.location.href = 'index.html'; };
+        window.logout = () => { sessionStorage.clear(); window.location.href = 'index'; };
 
         function showToast(msg, type) {
             const t = document.createElement('div');
