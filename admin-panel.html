@@ -209,7 +209,7 @@
         const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
 
         // Check login
-        if (!sessionStorage.getItem('bek_admin')) window.location.href = 'admin.html';
+        if (!sessionStorage.getItem('bek_admin')) window.location.href = 'admin';
 
         let deleteId = null;
 
@@ -364,7 +364,7 @@
             } catch (e) { notify('Update Failure', 'error'); }
         });
 
-        window.adminLogout = () => { sessionStorage.removeItem('bek_admin'); window.location.href = 'admin.html'; };
+        window.adminLogout = () => { sessionStorage.removeItem('bek_admin'); window.location.href = 'admin'; };
         
         loadPanel();
     </script>
