@@ -51,7 +51,7 @@
             </div>
             <button type="submit" class="btn" id="submitBtn">Authenticate</button>
         </form>
-        <a href="index.html" class="footer-link">&larr; Return to Public Portal</a>
+        <a href="index" class="footer-link">&larr; Return to Public Portal</a>
     </div>
     <div id="toast" class="toast"></div>
 
@@ -81,7 +81,7 @@
                 if (r.length > 0) {
                     sessionStorage.setItem('bek_admin', 'true');
                     showToast('Authorization Granted', '#10B981');
-                    setTimeout(() => window.location.href = 'admin-panel.html', 800);
+                    setTimeout(() => window.location.href = 'admin-panel', 800);
                 } else {
                     showToast('Access Denied: Invalid Credentials');
                     btn.disabled = false; btn.textContent = 'AUTHENTICATE';
