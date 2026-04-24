@@ -7,9 +7,15 @@
     <script>
         (function() {
             const allowed = 'bekbank.vercel.app';
-            if (window.location.hostname !== allowed && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            const current = window.location.hostname;
+            if (current !== allowed && current !== 'localhost' && current !== '127.0.0.1') {
                 window.location.replace('https://' + allowed);
             }
+            // Redirect if already logged in
+            try {
+                const u = sessionStorage.getItem('bek_user');
+                if (u) { const parsed = JSON.parse(u); if (parsed && parsed.id) window.location.replace('dashboard'); }
+            } catch(e) {}
         })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -23,114 +29,75 @@
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Figtree', sans-serif; min-height: 100vh; background: var(--navy); display: flex; }
+        [dir="rtl"] body, [dir="rtl"] { font-family: 'Figtree', sans-serif; }
 
-        /* Left panel */
-        .left-panel {
-            flex: 1; background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%);
-            display: flex; flex-direction: column; justify-content: space-between;
-            padding: 40px 56px; position: relative; overflow: hidden;
-        }
-        .left-panel::before {
-            content: ''; position: absolute; inset: 0;
-            background-image: radial-gradient(circle at 80% 20%, rgba(200,150,60,0.1) 0%, transparent 50%);
-        }
-        .left-grid {
-            position: absolute; inset: 0; opacity: 0.03;
-            background-image: linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
-            background-size: 48px 48px;
-        }
+        /* LEFT PANEL */
+        .left-panel { flex: 1; background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%); display: flex; flex-direction: column; justify-content: space-between; padding: 40px 56px; position: relative; overflow: hidden; }
+        .left-panel::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle at 80% 20%, rgba(200,150,60,0.1) 0%, transparent 50%); }
+        .left-grid { position: absolute; inset: 0; opacity: 0.03; background-image: linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px); background-size: 48px 48px; }
         .left-logo { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
-        .logo-mark {
-            width: 48px; height: 48px; background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            font-family: 'Playfair Display', serif; font-weight: 800; font-size: 22px; color: var(--navy);
-        }
+        .logo-mark { width: 48px; height: 48px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-weight: 800; font-size: 22px; color: var(--navy); }
         .logo-text { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 22px; color: var(--white); }
         .logo-sub { font-size: 11px; color: rgba(200,150,60,0.75); letter-spacing: 0.1em; text-transform: uppercase; }
         .left-content { position: relative; z-index: 1; }
         .left-content h2 { font-family: 'Playfair Display', serif; font-size: 42px; line-height: 1.2; color: var(--white); margin-bottom: 20px; }
         .left-content h2 span { color: var(--gold-light); }
-        .left-content p { font-size: 16px; color: rgba(255,255,255,0.5); line-height: 1.75; max-width: 360px; }
+        .left-content p { font-size: 16px; color: rgba(255,255,255,0.48); line-height: 1.75; max-width: 360px; }
         .left-features { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; }
         .left-feat { display: flex; align-items: center; gap: 14px; }
         .left-feat-dot { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; flex-shrink: 0; }
-        .left-feat span { font-size: 14px; color: rgba(255,255,255,0.55); font-weight: 500; }
+        .left-feat span { font-size: 14px; color: rgba(255,255,255,0.52); font-weight: 500; }
         @media(max-width: 900px) { .left-panel { display: none; } }
 
-        /* Right panel */
-        .right-panel {
-            width: 520px; background: var(--pearl); display: flex; align-items: center;
-            justify-content: center; padding: 48px 56px;
-            flex-shrink: 0;
-        }
+        /* RIGHT PANEL */
+        .right-panel { width: 520px; background: var(--pearl); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 56px; flex-shrink: 0; gap: 0; }
         @media(max-width: 900px) { .right-panel { width: 100%; padding: 40px 24px; } }
+        .lang-row { width: 100%; max-width: 380px; display: flex; gap: 6px; margin-bottom: 28px; }
+        .lang-btn { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Figtree', sans-serif; }
+        .lang-btn:hover, .lang-btn.active { border-color: var(--gold); color: var(--gold); background: var(--gold-pale); }
         .form-wrap { width: 100%; max-width: 380px; }
-        .form-header { margin-bottom: 40px; }
+        .form-header { margin-bottom: 36px; }
         .form-header h1 { font-family: 'Playfair Display', serif; font-size: 34px; color: var(--navy); font-weight: 700; margin-bottom: 8px; }
         .form-header p { font-size: 15px; color: var(--text-secondary); }
         .form-header p a { color: var(--gold); font-weight: 600; text-decoration: none; }
         .form-header p a:hover { text-decoration: underline; }
-
-        .field { margin-bottom: 22px; }
-        .field label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 8px; letter-spacing: 0.03em; text-transform: uppercase; }
+        .field { margin-bottom: 20px; }
+        .field label { display: block; font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
         .field-input-wrap { position: relative; }
-        .field input {
-            width: 100%; padding: 14px 18px; background: var(--white);
-            border: 1.5px solid var(--border); border-radius: 10px;
-            font-family: 'Figtree', sans-serif; font-size: 15px; color: var(--text-primary);
-            transition: all 0.2s; outline: none;
-        }
+        .field input { width: 100%; padding: 14px 18px; background: var(--white); border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Figtree', sans-serif; font-size: 15px; color: var(--text-primary); transition: all 0.2s; outline: none; }
         .field input:focus { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(200,150,60,0.1); }
         .field input::placeholder { color: var(--text-muted); }
         .field input.has-icon { padding-right: 48px; }
-        .eye-btn {
-            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; cursor: pointer; color: var(--text-muted);
-            display: flex; align-items: center; transition: color 0.2s; padding: 4px;
-        }
+        [dir="rtl"] .field input.has-icon { padding-right: 18px; padding-left: 48px; }
+        .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; transition: color 0.2s; padding: 4px; }
+        [dir="rtl"] .eye-btn { right: auto; left: 14px; }
         .eye-btn:hover { color: var(--navy); }
-
-        .btn-submit {
-            width: 100%; padding: 15px; background: linear-gradient(135deg, var(--navy), var(--navy-light));
-            color: var(--white); border: none; border-radius: 10px;
-            font-family: 'Figtree', sans-serif; font-size: 16px; font-weight: 700;
-            cursor: pointer; transition: all 0.25s; margin-top: 8px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(12,30,60,0.3); }
-        .btn-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
-
-        .divider { display: flex; align-items: center; gap: 14px; margin: 28px 0; }
+        .lockout-banner { background: #fff5f5; border: 1px solid #fed7d7; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; display: none; }
+        .lockout-banner p { font-size: 13px; color: var(--danger); font-weight: 600; }
+        .attempt-notice { font-size: 12px; color: var(--danger); margin-top: 6px; display: none; }
+        .btn-submit { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: var(--white); border: none; border-radius: 10px; font-family: 'Figtree', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.25s; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(12,30,60,0.3); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .divider { display: flex; align-items: center; gap: 14px; margin: 24px 0; }
         .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
         .divider span { font-size: 12px; color: var(--text-muted); font-weight: 500; white-space: nowrap; }
-
-        .link-back {
-            text-align: center; color: var(--text-secondary); font-size: 14px;
-        }
+        .link-back { text-align: center; color: var(--text-secondary); font-size: 14px; }
         .link-back a { color: var(--gold); font-weight: 600; text-decoration: none; }
         .link-back a:hover { text-decoration: underline; }
-
-        .security-note { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 36px; font-size: 12px; color: var(--text-muted); }
+        .security-note { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 32px; font-size: 12px; color: var(--text-muted); }
         .security-note svg { width: 14px; height: 14px; color: var(--success); flex-shrink: 0; }
-
-        /* Toast */
-        .toast {
-            position: fixed; top: 24px; right: 24px; z-index: 9999;
-            padding: 14px 20px; border-radius: 12px; font-weight: 500; font-size: 14px;
-            background: var(--white); border-left: 4px solid;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-            animation: toastIn 0.25s ease-out;
-            font-family: 'Figtree', sans-serif;
-        }
+        .toast { position: fixed; top: 24px; right: 24px; z-index: 9999; padding: 14px 20px; border-radius: 12px; font-weight: 500; font-size: 14px; background: var(--white); border-left: 4px solid; box-shadow: 0 8px 30px rgba(0,0,0,0.12); animation: toastIn 0.25s ease-out; font-family: 'Figtree', sans-serif; max-width: 320px; }
+        [dir="rtl"] .toast { right: auto; left: 24px; border-left: none; border-right: 4px solid; animation: toastInRtl 0.25s ease-out; }
         .toast-success { border-left-color: var(--success); }
         .toast-error { border-left-color: var(--danger); }
         .toast-info { border-left-color: var(--gold); }
         @keyframes toastIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastInRtl { from { transform: translateX(-120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .session-chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(13,158,110,0.1); border: 1px solid rgba(13,158,110,0.25); color: var(--success); padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+        .session-chip::before { content: ''; width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
     </style>
 </head>
 <body>
-    <!-- LEFT PANEL -->
     <div class="left-panel">
         <div class="left-grid"></div>
         <div class="left-logo">
@@ -141,35 +108,46 @@
             </div>
         </div>
         <div class="left-content">
-            <h2>Welcome<br>Back to<br><span>Your Bank</span></h2>
-            <p>Access your account, manage transfers, and stay on top of your finances.</p>
+            <h2 data-i18n="left_title">Welcome<br>Back to<br><span data-i18n="left_title_span">Your Bank</span></h2>
+            <p data-i18n="left_sub">Access your account, manage transfers, and stay on top of your finances.</p>
         </div>
         <div class="left-features">
-            <div class="left-feat"><div class="left-feat-dot"></div><span>Real-time balance tracking</span></div>
-            <div class="left-feat"><div class="left-feat-dot"></div><span>Instant peer-to-peer transfers</span></div>
-            <div class="left-feat"><div class="left-feat-dot"></div><span>Full transaction history</span></div>
-            <div class="left-feat"><div class="left-feat-dot"></div><span>Enterprise-grade security</span></div>
+            <div class="left-feat"><div class="left-feat-dot"></div><span data-i18n="feat1">Real-time balance tracking</span></div>
+            <div class="left-feat"><div class="left-feat-dot"></div><span data-i18n="feat2">Instant peer-to-peer transfers</span></div>
+            <div class="left-feat"><div class="left-feat-dot"></div><span data-i18n="feat3">Full transaction history</span></div>
+            <div class="left-feat"><div class="left-feat-dot"></div><span data-i18n="feat4">Enterprise-grade security</span></div>
         </div>
     </div>
 
-    <!-- RIGHT PANEL -->
     <div class="right-panel">
+        <div class="lang-row">
+            <button class="lang-btn active" onclick="setLang('en')">EN</button>
+            <button class="lang-btn" onclick="setLang('fr')">FR</button>
+            <button class="lang-btn" onclick="setLang('ar')">ع</button>
+        </div>
         <div class="form-wrap">
             <div class="form-header">
-                <h1>Sign In</h1>
-                <p>New to BEK? <a href="sign-up">Create a free account</a></p>
+                <h1 data-i18n="title">Sign In</h1>
+                <p><span data-i18n="new_here">New to BEK?</span> <a href="sign-up" data-i18n="create_link">Create a free account</a></p>
             </div>
 
-            <form id="loginForm">
+            <div class="lockout-banner" id="lockoutBanner">
+                <p id="lockoutMsg"></p>
+            </div>
+
+            <div class="session-chip" id="sessionChip" style="display:none;" data-i18n="secure_session">Session encrypted & secure</div>
+
+            <form id="loginForm" novalidate>
                 <div class="field">
-                    <label>Username</label>
-                    <input type="text" id="username" placeholder="Enter your username" required autocomplete="username">
+                    <label data-i18n="label_user">Username</label>
+                    <input type="text" id="username" required autocomplete="username" spellcheck="false" maxlength="64">
+                    <div class="attempt-notice" id="attemptNotice"></div>
                 </div>
                 <div class="field">
-                    <label>Password</label>
+                    <label data-i18n="label_pass">Password</label>
                     <div class="field-input-wrap">
-                        <input type="password" id="password" class="has-icon" placeholder="Enter your password" required autocomplete="current-password">
-                        <button type="button" class="eye-btn" onclick="togglePassword()" aria-label="Toggle password">
+                        <input type="password" id="password" class="has-icon" required autocomplete="current-password" maxlength="128">
+                        <button type="button" class="eye-btn" onclick="togglePassword()" aria-label="Toggle password visibility">
                             <svg id="eyeIcon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -179,21 +157,16 @@
                 </div>
                 <button type="submit" class="btn-submit" id="submitBtn">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-                    Sign In to Your Account
+                    <span data-i18n="btn_signin">Sign In to Your Account</span>
                 </button>
             </form>
 
-            <div class="divider"><span>or</span></div>
-            <div class="link-back">
-                Don't have an account? <a href="sign-up">Open one free →</a>
-            </div>
-            <div class="link-back" style="margin-top:12px;">
-                <a href="/" style="color: var(--text-muted);">← Back to home</a>
-            </div>
+            <div class="divider"><span data-i18n="or">or</span></div>
+            <div class="link-back"><a href="/" data-i18n="back_home">← Back to home</a></div>
 
             <div class="security-note">
                 <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0110 1.944 11.954 11.954 0 0117.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                Your connection is secure and encrypted
+                <span data-i18n="secure_note">Your connection is secure and encrypted</span>
             </div>
         </div>
     </div>
@@ -204,6 +177,53 @@
         import { neon } from 'https://esm.sh/@neondatabase/serverless';
         const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
 
+        // ── SECURITY: Rate limiter (client-side layer, server should also enforce) ──
+        const RATE_KEY = 'bek_login_attempts';
+        const MAX_ATTEMPTS = 5;
+        const LOCKOUT_MS = 10 * 60 * 1000; // 10 minutes
+
+        function getRateData() {
+            try { return JSON.parse(localStorage.getItem(RATE_KEY)) || { count: 0, since: Date.now(), lockedUntil: 0 }; }
+            catch { return { count: 0, since: Date.now(), lockedUntil: 0 }; }
+        }
+
+        function isLockedOut() {
+            const d = getRateData();
+            if (d.lockedUntil && Date.now() < d.lockedUntil) return { locked: true, remaining: Math.ceil((d.lockedUntil - Date.now()) / 1000) };
+            return { locked: false };
+        }
+
+        function recordAttempt(success) {
+            let d = getRateData();
+            if (success) { localStorage.removeItem(RATE_KEY); return; }
+            if (Date.now() - d.since > LOCKOUT_MS) { d = { count: 0, since: Date.now(), lockedUntil: 0 }; }
+            d.count++;
+            if (d.count >= MAX_ATTEMPTS) { d.lockedUntil = Date.now() + LOCKOUT_MS; }
+            localStorage.setItem(RATE_KEY, JSON.stringify(d));
+            return d.count;
+        }
+
+        function checkLockout() {
+            const status = isLockedOut();
+            if (status.locked) {
+                const mins = Math.ceil(status.remaining / 60);
+                const banner = document.getElementById('lockoutBanner');
+                document.getElementById('lockoutMsg').textContent = `Too many failed attempts. Please wait ${mins} minute${mins > 1 ? 's' : ''} before trying again.`;
+                banner.style.display = 'block';
+                document.getElementById('submitBtn').disabled = true;
+                return true;
+            }
+            const d = getRateData();
+            if (d.count > 0) {
+                const remaining = MAX_ATTEMPTS - d.count;
+                const notice = document.getElementById('attemptNotice');
+                notice.textContent = `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining before lockout`;
+                notice.style.display = 'block';
+            }
+            return false;
+        }
+
+        // ── PASSWORD HASH (Poly-31 · Prime Mod · 7-Digit — unchanged) ──
         function hashPassword(input) {
             let h = 0;
             input = input.toUpperCase().replace(/[^A-Z]/g, '');
@@ -211,20 +231,69 @@
             return h.toString().padStart(7, '0');
         }
 
+        // ── INPUT SANITIZATION ──
+        function sanitize(str) {
+            return String(str).trim().replace(/[\x00-\x1F\x7F]/g, '').substring(0, 128);
+        }
+
         async function verifyUser(username, password) {
             try {
-                const r = await sql`SELECT * FROM users WHERE username = ${username} AND password_hash = ${hashPassword(password)}`;
+                const r = await sql`SELECT id, name, username, balance, status, created_at FROM users WHERE username = ${username} AND password_hash = ${hashPassword(password)} AND status = 'active'`;
                 if (r.length > 0) return { ...r[0], balance: parseFloat(r[0].balance) };
                 return null;
-            } catch(e) { console.error(e); return null; }
+            } catch(e) { console.error('Auth error'); return null; }
         }
+
+        // ── SESSION MANAGEMENT ──
+        function createSession(user) {
+            const session = {
+                ...user,
+                _ts: Date.now(),
+                _exp: Date.now() + (2 * 60 * 60 * 1000) // 2 hour expiry
+            };
+            sessionStorage.setItem('bek_user', JSON.stringify(session));
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (checkLockout()) return;
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.querySelector('span').textContent = '...';
+
+            const username = sanitize(document.getElementById('username').value);
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showToast(T('fill_fields') || 'Please fill in all fields', 'error');
+                btn.disabled = false; btn.querySelector('span').textContent = T('btn_signin') || 'Sign In to Your Account';
+                return;
+            }
+
+            const user = await verifyUser(username, password);
+
+            if (user) {
+                recordAttempt(true);
+                createSession(user);
+                document.getElementById('sessionChip').style.display = 'flex';
+                showToast((T('welcome_back') || 'Welcome back') + ', ' + user.name + '!', 'success');
+                setTimeout(() => window.location.href = 'dashboard', 700);
+            } else {
+                const count = recordAttempt(false);
+                checkLockout();
+                showToast(T('invalid_creds') || 'Invalid username or password', 'error');
+                btn.disabled = isLockedOut().locked;
+                if (!btn.disabled) btn.querySelector('span').textContent = T('btn_signin') || 'Sign In to Your Account';
+            }
+        });
 
         function showToast(msg, type = 'info') {
             const c = document.createElement('div');
             c.className = `toast toast-${type}`;
             c.textContent = msg;
             document.getElementById('toastContainer').appendChild(c);
-            setTimeout(() => { c.style.opacity = '0'; setTimeout(() => c.remove(), 250); }, 3500);
+            setTimeout(() => { c.style.opacity = '0'; c.style.transition = 'opacity 0.25s'; setTimeout(() => c.remove(), 250); }, 3500);
         }
 
         function togglePassword() {
@@ -237,25 +306,28 @@
         }
         window.togglePassword = togglePassword;
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Signing in...';
-            const user = await verifyUser(
-                document.getElementById('username').value.trim(),
-                document.getElementById('password').value
-            );
-            if (user) {
-                sessionStorage.setItem('bek_user', JSON.stringify(user));
-                showToast('Welcome back, ' + user.name + '!', 'success');
-                setTimeout(() => window.location.href = 'dashboard', 600);
-            } else {
-                showToast('Invalid username or password', 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg> Sign In to Your Account';
-            }
-        });
+        checkLockout();
+    </script>
+    <script>
+    // ── I18N SYSTEM ──
+    const TRANSLATIONS = {
+        en: { title: 'Sign In', left_title: 'Welcome<br>Back to<br><span>Your Bank</span>', left_title_span: 'Your Bank', left_sub: 'Access your account, manage transfers, and stay on top of your finances.', feat1: 'Real-time balance tracking', feat2: 'Instant peer-to-peer transfers', feat3: 'Full transaction history', feat4: 'Enterprise-grade security', label_user: 'Username', label_pass: 'Password', btn_signin: 'Sign In to Your Account', new_here: 'New to BEK?', create_link: 'Create a free account', or: 'or', back_home: '← Back to home', secure_note: 'Your connection is secure and encrypted', secure_session: 'Session encrypted & secure', welcome_back: 'Welcome back', invalid_creds: 'Invalid username or password', fill_fields: 'Please fill in all fields' },
+        fr: { title: 'Se connecter', left_title: 'Bienvenue<br>de retour<br><span>dans votre banque</span>', left_title_span: 'dans votre banque', left_sub: 'Accédez à votre compte, gérez les virements et gardez le contrôle de vos finances.', feat1: 'Suivi du solde en temps réel', feat2: 'Virements instantanés', feat3: 'Historique complet', feat4: 'Sécurité de niveau entreprise', label_user: 'Nom d\'utilisateur', label_pass: 'Mot de passe', btn_signin: 'Se connecter', new_here: 'Nouveau sur BEK?', create_link: 'Créer un compte gratuit', or: 'ou', back_home: '← Retour à l\'accueil', secure_note: 'Votre connexion est sécurisée et chiffrée', secure_session: 'Session chiffrée et sécurisée', welcome_back: 'Bon retour', invalid_creds: 'Identifiant ou mot de passe invalide', fill_fields: 'Veuillez remplir tous les champs' },
+        ar: { title: 'تسجيل الدخول', left_title: 'مرحبًا<br>بعودتك إلى<br><span>بنكك</span>', left_title_span: 'بنكك', left_sub: 'ادخل إلى حسابك، وأدر التحويلات، وتابع شؤونك المالية.', feat1: 'متابعة الرصيد لحظيًا', feat2: 'تحويلات فورية', feat3: 'سجل المعاملات الكامل', feat4: 'أمان بمستوى المؤسسات', label_user: 'اسم المستخدم', label_pass: 'كلمة المرور', btn_signin: 'تسجيل الدخول', new_here: 'جديد في BEK؟', create_link: 'أنشئ حسابًا مجانيًا', or: 'أو', back_home: '→ العودة للرئيسية', secure_note: 'اتصالك آمن ومشفّر', secure_session: 'الجلسة مشفّرة وآمنة', welcome_back: 'أهلًا بعودتك', invalid_creds: 'اسم المستخدم أو كلمة المرور غير صحيحة', fill_fields: 'يرجى ملء جميع الحقول' }
+    };
+    let currentLang = localStorage.getItem('bek_lang') || 'en';
+    function T(key) { return (TRANSLATIONS[currentLang] || TRANSLATIONS.en)[key]; }
+    function setLang(lang) {
+        currentLang = lang;
+        localStorage.setItem('bek_lang', lang);
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        document.querySelectorAll('.lang-btn').forEach((b, i) => b.classList.toggle('active', ['en','fr','ar'][i] === lang));
+        const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
+        document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (t[k]) el.innerHTML = t[k]; });
+    }
+    window.setLang = setLang;
+    setLang(currentLang);
     </script>
 </body>
 </html>
