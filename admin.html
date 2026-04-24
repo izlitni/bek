@@ -11,87 +11,221 @@
             if (current !== allowed && current !== 'localhost' && current !== '127.0.0.1') {
                 window.location.replace('https://' + allowed);
             }
+            // Redirect if already logged in as admin
+            try {
+                if (sessionStorage.getItem('bek_admin') === 'true') window.location.replace('admin-panel');
+            } catch(e) {}
         })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #050B14; --surface: #0A192F; --gold: #D4AF37; --danger: #EF4444; --text: #F8F9FA; --muted: #64748B; }
+        :root { --bg: #050B14; --surface: #0A192F; --gold: #D4AF37; --danger: #EF4444; --text: #F8F9FA; --muted: #64748B; --success: #10B981; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); font-family: 'Figtree', sans-serif; color: var(--text); background-image: radial-gradient(circle at 50% 0%, #112240 0%, transparent 50%); }
-        .login-box { background: var(--surface); padding: 50px 40px; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.8); border: 1px solid rgba(212,175,55,0.2); position: relative; overflow: hidden; }
+        .noise { position: fixed; inset: 0; pointer-events: none; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); }
+        .corner-lang { position: fixed; top: 20px; right: 20px; display: flex; gap: 6px; z-index: 100; }
+        .lang-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--muted); padding: 6px 11px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Figtree', sans-serif; }
+        .lang-btn:hover, .lang-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(212,175,55,0.08); }
+        .login-box { background: var(--surface); padding: 50px 44px; border-radius: 16px; width: 100%; max-width: 420px; box-shadow: 0 25px 60px rgba(0,0,0,0.8); border: 1px solid rgba(212,175,55,0.15); position: relative; overflow: hidden; }
         .login-box::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--danger), var(--gold)); }
-        .header { text-align: center; margin-bottom: 40px; }
-        .header h1 { font-family: 'Playfair Display', serif; font-size: 28px; margin: 0 0 10px 0; color: white; letter-spacing: 1px; }
-        .header p { color: var(--danger); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin: 0; }
-        .field { margin-bottom: 20px; }
-        .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .field input { width: 100%; padding: 14px; background: rgba(0,0,0,0.2); border: 1px solid #1e3f7a; border-radius: 6px; color: white; font-family: monospace; font-size: 16px; outline: none; transition: 0.3s; box-sizing: border-box; }
-        .field input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(212,175,55,0.2); }
-        .btn { width: 100%; padding: 16px; background: var(--text); color: var(--bg); font-weight: 700; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; transition: 0.3s; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        .btn:hover { background: var(--gold); }
-        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
-        .footer-link { display: block; text-align: center; margin-top: 25px; color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.3s; }
+        .header { text-align: center; margin-bottom: 36px; }
+        .header-icon { width: 56px; height: 56px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+        .header-icon svg { width: 24px; height: 24px; color: var(--danger); }
+        .header h1 { font-family: 'Playfair Display', serif; font-size: 26px; margin: 0 0 8px 0; color: white; letter-spacing: 0.5px; }
+        .header p { color: var(--danger); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin: 0; }
+        .field { margin-bottom: 18px; }
+        .field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+        .field input { width: 100%; padding: 13px 16px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: white; font-family: monospace; font-size: 15px; outline: none; transition: all 0.3s; }
+        .field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,175,55,0.15); }
+        .lockout-banner { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; padding: 12px 14px; margin-bottom: 18px; display: none; }
+        .lockout-banner p { font-size: 13px; color: var(--danger); font-weight: 600; }
+        .attempt-notice { font-size: 11px; color: var(--danger); margin-top: 6px; display: none; font-weight: 600; }
+        .btn { width: 100%; padding: 15px; background: white; color: #050B14; font-weight: 800; font-size: 14px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; margin-top: 8px; text-transform: uppercase; letter-spacing: 1.5px; }
+        .btn:hover:not(:disabled) { background: var(--gold); color: #050B14; }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+        .footer-link { display: block; text-align: center; margin-top: 22px; color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.3s; }
         .footer-link:hover { color: white; }
-        .toast { position: fixed; top: 20px; right: 20px; padding: 15px 25px; background: var(--danger); color: white; border-radius: 6px; font-weight: 500; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; }
+        .toast { position: fixed; top: 20px; right: 20px; padding: 14px 22px; color: white; border-radius: 8px; font-weight: 600; font-size: 13px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 200; transition: opacity 0.3s; }
+        .countdown { font-size: 11px; color: var(--muted); text-align: center; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
+    <div class="noise"></div>
+    <div class="corner-lang">
+        <button class="lang-btn active" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" onclick="setLang('fr')">FR</button>
+        <button class="lang-btn" onclick="setLang('ar')">ع</button>
+    </div>
+
     <div class="login-box">
         <div class="header">
-            <h1>Central Command</h1>
-            <p>Restricted Authorization</p>
+            <div class="header-icon">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+            <h1 data-i18n="title">Central Command</h1>
+            <p data-i18n="subtitle">Restricted Authorization</p>
         </div>
-        <form id="adminForm">
+
+        <div class="lockout-banner" id="lockoutBanner">
+            <p id="lockoutMsg"></p>
+        </div>
+
+        <form id="adminForm" novalidate>
             <div class="field">
-                <label>Administrator ID</label>
-                <input type="text" id="adminUser" required autocomplete="off" spellcheck="false">
+                <label data-i18n="label_id">Administrator ID</label>
+                <input type="text" id="adminUser" required autocomplete="off" spellcheck="false" maxlength="64">
+                <div class="attempt-notice" id="attemptNotice"></div>
             </div>
             <div class="field">
-                <label>Security Passcode</label>
-                <input type="password" id="adminPass" required>
+                <label data-i18n="label_pass">Security Passcode</label>
+                <input type="password" id="adminPass" required maxlength="128">
             </div>
-            <button type="submit" class="btn" id="submitBtn">Authenticate</button>
+            <button type="submit" class="btn" id="submitBtn">
+                <span data-i18n="btn">Authenticate</span>
+            </button>
         </form>
-        <a href="/" class="footer-link">&larr; Return to Public Portal</a>
+        <div class="countdown" id="countdown"></div>
+        <a href="/" class="footer-link" data-i18n="back">← Return to Public Portal</a>
     </div>
     <div id="toast" class="toast"></div>
 
     <script type="module">
         import { neon } from 'https://esm.sh/@neondatabase/serverless';
         const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
-        
+
+        // Poly-31 · Prime Mod · 7-Digit (unchanged)
         function hashPassword(input) {
             let h = 0; input = input.toUpperCase().replace(/[^A-Z]/g, '');
             for (let i = 0; i < input.length; i++) h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
             return h.toString().padStart(7, '0');
         }
 
+        // ── ADMIN RATE LIMITER (stricter than user) ──
+        const ADMIN_RATE_KEY = 'bek_admin_attempts';
+        const ADMIN_MAX = 3;
+        const ADMIN_LOCKOUT_MS = 30 * 60 * 1000; // 30 minutes
+
+        function getAdminRateData() {
+            try { return JSON.parse(localStorage.getItem(ADMIN_RATE_KEY)) || { count: 0, since: Date.now(), lockedUntil: 0 }; }
+            catch { return { count: 0, since: Date.now(), lockedUntil: 0 }; }
+        }
+
+        function isLockedOut() {
+            const d = getAdminRateData();
+            if (d.lockedUntil && Date.now() < d.lockedUntil) return { locked: true, remaining: d.lockedUntil - Date.now() };
+            return { locked: false };
+        }
+
+        function recordAttempt(success) {
+            if (success) { localStorage.removeItem(ADMIN_RATE_KEY); return; }
+            let d = getAdminRateData();
+            if (Date.now() - d.since > ADMIN_LOCKOUT_MS) d = { count: 0, since: Date.now(), lockedUntil: 0 };
+            d.count++;
+            if (d.count >= ADMIN_MAX) d.lockedUntil = Date.now() + ADMIN_LOCKOUT_MS;
+            localStorage.setItem(ADMIN_RATE_KEY, JSON.stringify(d));
+            return d.count;
+        }
+
+        let countdownInterval;
+        function checkLockout() {
+            const status = isLockedOut();
+            if (status.locked) {
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('lockoutBanner').style.display = 'block';
+                const countdown = document.getElementById('countdown');
+                countdown.style.display = 'block';
+                clearInterval(countdownInterval);
+                countdownInterval = setInterval(() => {
+                    const s = isLockedOut();
+                    if (!s.locked) { clearInterval(countdownInterval); window.location.reload(); return; }
+                    const mins = Math.floor(s.remaining / 60000);
+                    const secs = Math.floor((s.remaining % 60000) / 1000);
+                    countdown.textContent = `Retry in ${mins}m ${secs}s`;
+                    const mins2 = Math.ceil(s.remaining / 60000);
+                    document.getElementById('lockoutMsg').textContent = window.T ? T('lockout_msg', mins2) : `Too many attempts. Locked for ${mins2} minute${mins2>1?'s':''}.`;
+                }, 1000);
+                return true;
+            }
+            const d = getAdminRateData();
+            if (d.count > 0) {
+                const rem = ADMIN_MAX - d.count;
+                const notice = document.getElementById('attemptNotice');
+                notice.textContent = `${rem} attempt${rem !== 1 ? 's' : ''} remaining before 30-minute lockout`;
+                notice.style.display = 'block';
+            }
+            return false;
+        }
+
         function showToast(msg, color = 'var(--danger)') {
             const t = document.getElementById('toast');
             t.textContent = msg; t.style.background = color; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => { t.style.display = 'none'; t.style.opacity = '1'; }, 400); }, 3000);
         }
 
         document.getElementById('adminForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (checkLockout()) return;
+
             const btn = document.getElementById('submitBtn');
-            btn.disabled = true; btn.textContent = 'VERIFYING...';
+            btn.disabled = true;
+            btn.querySelector('span').textContent = T ? T('verifying') : 'VERIFYING...';
+
+            const adminUser = document.getElementById('adminUser').value.trim();
+            const adminPass = document.getElementById('adminPass').value;
+
+            if (!adminUser || !adminPass) {
+                showToast(T ? T('fill_fields') : 'Fill in all fields');
+                btn.disabled = false;
+                btn.querySelector('span').textContent = T ? T('btn') : 'Authenticate';
+                return;
+            }
 
             try {
-                const r = await sql`SELECT * FROM admin WHERE username = ${document.getElementById('adminUser').value.trim()} AND password_hash = ${hashPassword(document.getElementById('adminPass').value)}`;
+                const r = await sql`SELECT id FROM admin WHERE username = ${adminUser} AND password_hash = ${hashPassword(adminPass)}`;
                 if (r.length > 0) {
+                    recordAttempt(true);
                     sessionStorage.setItem('bek_admin', 'true');
-                    showToast('Authorization Granted', '#10B981');
+                    sessionStorage.setItem('bek_admin_ts', Date.now().toString());
+                    showToast(T ? T('access_granted') : 'Authorization Granted', 'var(--success)');
                     setTimeout(() => window.location.href = 'admin-panel', 800);
                 } else {
-                    showToast('Access Denied: Invalid Credentials');
-                    btn.disabled = false; btn.textContent = 'AUTHENTICATE';
+                    recordAttempt(false);
+                    checkLockout();
+                    showToast(T ? T('access_denied') : 'Access Denied: Invalid Credentials');
+                    if (!isLockedOut().locked) { btn.disabled = false; btn.querySelector('span').textContent = T ? T('btn') : 'Authenticate'; }
                 }
             } catch (err) {
-                showToast('Network Error: Database unreachable');
-                console.error(err);
-                btn.disabled = false; btn.textContent = 'AUTHENTICATE';
+                showToast(T ? T('network_error') : 'Network Error: Database unreachable');
+                btn.disabled = false;
+                btn.querySelector('span').textContent = T ? T('btn') : 'Authenticate';
             }
         });
+
+        checkLockout();
+    </script>
+    <script>
+    const TRANSLATIONS = {
+        en: { title: 'Central Command', subtitle: 'Restricted Authorization', label_id: 'Administrator ID', label_pass: 'Security Passcode', btn: 'Authenticate', back: '← Return to Public Portal', verifying: 'Verifying...', fill_fields: 'Please fill in all fields', access_granted: 'Authorization Granted', access_denied: 'Access Denied: Invalid Credentials', network_error: 'Network Error: Database unreachable', lockout_msg: (m) => `Too many failed attempts. Locked for ${m} minute${m>1?'s':''}.` },
+        fr: { title: 'Commande Centrale', subtitle: 'Autorisation Restreinte', label_id: 'ID Administrateur', label_pass: 'Code de sécurité', btn: 'Authentifier', back: '← Retour au portail public', verifying: 'Vérification...', fill_fields: 'Veuillez remplir tous les champs', access_granted: 'Autorisation accordée', access_denied: 'Accès refusé : identifiants invalides', network_error: 'Erreur réseau : base de données inaccessible', lockout_msg: (m) => `Trop de tentatives. Verrouillé pour ${m} minute${m>1?'s':''}.` },
+        ar: { title: 'القيادة المركزية', subtitle: 'تفويض مقيّد', label_id: 'معرّف المسؤول', label_pass: 'رمز الأمان', btn: 'مصادقة', back: '→ العودة للبوابة العامة', verifying: 'جارٍ التحقق...', fill_fields: 'يرجى ملء جميع الحقول', access_granted: 'تم منح الإذن', access_denied: 'تم الرفض: بيانات اعتماد غير صالحة', network_error: 'خطأ في الشبكة: قاعدة البيانات غير متاحة', lockout_msg: (m) => `محاولات فاشلة كثيرة. مقفل لمدة ${m} دقيقة.` }
+    };
+    let currentLang = localStorage.getItem('bek_lang') || 'en';
+    function T(key, arg) {
+        const t = (TRANSLATIONS[currentLang] || TRANSLATIONS.en)[key];
+        return typeof t === 'function' ? t(arg) : t;
+    }
+    window.T = T;
+    function setLang(lang) {
+        currentLang = lang;
+        localStorage.setItem('bek_lang', lang);
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        document.querySelectorAll('.lang-btn').forEach((b, i) => b.classList.toggle('active', ['en','fr','ar'][i] === lang));
+        const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
+        document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (t[k] && typeof t[k] !== 'function') el.innerHTML = t[k]; });
+    }
+    window.setLang = setLang;
+    setLang(currentLang);
     </script>
 </body>
 </html>
