@@ -10,92 +10,298 @@
             if (window.location.hostname !== allowed && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
                 window.location.replace('https://' + allowed);
             }
+            try {
+                const u = sessionStorage.getItem('bek_user');
+                if (u) { const p = JSON.parse(u); if (p && p.id) window.location.replace('dashboard'); }
+            } catch(e) {}
         })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --navy: #0A192F; --gold: #D4AF37; --bg: #F8F9FA; --text: #0A192F; --border: #E2E8F0; }
-        body { font-family: 'Figtree', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .auth-container { background: white; padding: 50px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); width: 100%; max-width: 480px; border-top: 6px solid var(--gold); }
-        .auth-header { text-align: center; margin-bottom: 40px; }
-        .auth-header h1 { font-family: 'Playfair Display', serif; color: var(--navy); font-size: 32px; margin-bottom: 10px; }
-        .field { margin-bottom: 20px; }
-        .field label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .field input { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Figtree', sans-serif; font-size: 16px; outline: none; transition: border 0.3s; }
-        .field input:focus { border-color: var(--gold); }
-        .btn-submit { width: 100%; padding: 16px; background: var(--navy); color: white; font-weight: 600; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-submit:hover { background: var(--gold); color: var(--navy); }
-        .link { text-align: center; margin-top: 20px; font-size: 14px; color: #64748B; }
-        .link a { color: var(--navy); font-weight: 600; text-decoration: none; }
-        .toast { position: fixed; top: 20px; right: 20px; padding: 15px 25px; background: var(--navy); color: white; border-radius: 8px; font-weight: 500; display: none; }
+        :root { --navy: #0c1e3c; --navy-mid: #152d5a; --navy-light: #1e3f7a; --gold: #c8963c; --gold-light: #e4b96a; --gold-pale: #f5e9d0; --pearl: #f7f4ee; --white: #ffffff; --text-primary: #0c1e3c; --text-secondary: #4a5568; --text-muted: #8896a8; --border: #e0dbd0; --success: #0d9e6e; --danger: #e53e3e; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Figtree', sans-serif; background: var(--pearl); display: flex; flex-direction: column; min-height: 100vh; }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+            padding: 18px 5%; display: flex; align-items: center; justify-content: space-between;
+        }
+        .header-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .header-logo-mark { width: 38px; height: 38px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-weight: 800; font-size: 17px; color: var(--navy); }
+        .header-logo-text { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; color: var(--white); }
+        .lang-switcher { display: flex; gap: 5px; }
+        .lang-btn { background: transparent; border: 1px solid rgba(200,150,60,0.3); color: rgba(255,255,255,0.65); padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Figtree', sans-serif; }
+        .lang-btn:hover, .lang-btn.active { border-color: var(--gold); color: var(--gold-light); background: rgba(200,150,60,0.12); }
+
+        .page-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+        .auth-container { background: white; padding: 48px; border-radius: 20px; box-shadow: 0 20px 60px rgba(12,30,60,0.1); width: 100%; max-width: 480px; border-top: 5px solid var(--gold); }
+        .auth-header { text-align: center; margin-bottom: 36px; }
+        .auth-header h1 { font-family: 'Playfair Display', serif; color: var(--navy); font-size: 30px; margin-bottom: 8px; }
+        .auth-header p { font-size: 15px; color: var(--text-secondary); }
+
+        .field { margin-bottom: 18px; }
+        .field label { display: block; font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .field-input-wrap { position: relative; }
+        .field input { width: 100%; padding: 13px 16px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Figtree', sans-serif; font-size: 15px; color: var(--text-primary); outline: none; transition: all 0.2s; background: #fff; }
+        .field input:focus { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(200,150,60,0.1); }
+        .field input.has-icon { padding-right: 46px; }
+        [dir="rtl"] .field input.has-icon { padding-right: 16px; padding-left: 46px; }
+        .field input::placeholder { color: var(--text-muted); }
+        .field input.valid { border-color: var(--success); }
+        .field input.invalid { border-color: var(--danger); }
+        .field-hint { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+        .field-error { font-size: 12px; color: var(--danger); margin-top: 5px; display: none; font-weight: 600; }
+
+        .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; transition: color 0.2s; padding: 4px; }
+        [dir="rtl"] .eye-btn { right: auto; left: 14px; }
+        .eye-btn:hover { color: var(--navy); }
+
+        /* Password strength */
+        .strength-bar { height: 4px; border-radius: 4px; background: var(--border); margin-top: 8px; overflow: hidden; }
+        .strength-fill { height: 100%; border-radius: 4px; transition: width 0.3s, background 0.3s; width: 0; }
+        .strength-label { font-size: 11px; margin-top: 4px; font-weight: 600; }
+
+        .btn-submit { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: white; font-weight: 700; font-size: 16px; border: none; border-radius: 10px; cursor: pointer; transition: all 0.25s; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(12,30,60,0.3); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .link { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-secondary); }
+        .link a { color: var(--gold); font-weight: 600; text-decoration: none; }
+        .link a:hover { text-decoration: underline; }
+        .terms { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 16px; line-height: 1.5; }
+
+        .toast { position: fixed; top: 24px; right: 24px; z-index: 9999; padding: 14px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); animation: toastIn 0.25s ease-out; border-left: 4px solid; background: white; font-family: 'Figtree', sans-serif; }
+        .toast-success { border-left-color: var(--success); color: var(--text-primary); }
+        .toast-error { border-left-color: var(--danger); color: var(--text-primary); }
+        .toast-info { border-left-color: var(--gold); color: var(--text-primary); }
+        [dir="rtl"] .toast { right: auto; left: 24px; border-left: none; border-right: 4px solid; }
+        @keyframes toastIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-header">
-            <h1>Join BEK Bank</h1>
-            <p style="color: #64748B;">Enter your details to open a secure account.</p>
+    <header class="page-header">
+        <a href="/" class="header-logo">
+            <div class="header-logo-mark">B</div>
+            <div class="header-logo-text">BEK</div>
+        </a>
+        <div class="lang-switcher">
+            <button class="lang-btn active" onclick="setLang('en')">EN</button>
+            <button class="lang-btn" onclick="setLang('fr')">FR</button>
+            <button class="lang-btn" onclick="setLang('ar')">ع</button>
         </div>
-        <form id="signupForm">
-            <div class="field">
-                <label>Full Name</label>
-                <input type="text" id="name" required placeholder="John Doe">
+    </header>
+
+    <div class="page-body">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1 data-i18n="title">Join BEK Bank</h1>
+                <p data-i18n="subtitle">Enter your details to open a secure account.</p>
             </div>
-            <div class="field">
-                <label>Username</label>
-                <input type="text" id="username" required placeholder="Choose a unique username">
-            </div>
-            <div class="field">
-                <label>Password</label>
-                <input type="password" id="password" required placeholder="Create a strong password">
-            </div>
-            <button type="submit" class="btn-submit" id="submitBtn">Open Account</button>
-        </form>
-        <div class="link">Already a member? <a href="sign-in">Sign In</a></div>
+            <form id="signupForm" novalidate>
+                <div class="field">
+                    <label data-i18n="label_name">Full Name</label>
+                    <input type="text" id="name" required placeholder="John Doe" maxlength="80" autocomplete="name">
+                    <div class="field-error" id="nameError"></div>
+                </div>
+                <div class="field">
+                    <label data-i18n="label_user">Username</label>
+                    <input type="text" id="username" required placeholder="john_doe" maxlength="32" autocomplete="username" spellcheck="false">
+                    <div class="field-hint" data-i18n="user_hint">Letters, numbers, and underscores only. 3–32 chars.</div>
+                    <div class="field-error" id="usernameError"></div>
+                </div>
+                <div class="field">
+                    <label data-i18n="label_pass">Password</label>
+                    <div class="field-input-wrap">
+                        <input type="password" id="password" class="has-icon" required placeholder="••••••••" maxlength="128" autocomplete="new-password">
+                        <button type="button" class="eye-btn" onclick="togglePass('password','eyeIcon1')" aria-label="Toggle password">
+                            <svg id="eyeIcon1" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+                    <div class="strength-label" id="strengthLabel"></div>
+                    <div class="field-error" id="passError"></div>
+                </div>
+                <div class="field">
+                    <label data-i18n="label_confirm">Confirm Password</label>
+                    <div class="field-input-wrap">
+                        <input type="password" id="confirmPassword" class="has-icon" required placeholder="••••••••" maxlength="128" autocomplete="new-password">
+                        <button type="button" class="eye-btn" onclick="togglePass('confirmPassword','eyeIcon2')" aria-label="Toggle confirm password">
+                            <svg id="eyeIcon2" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="field-error" id="confirmError"></div>
+                </div>
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span data-i18n="btn_submit">Open Account</span>
+                </button>
+            </form>
+            <div class="link"><span data-i18n="already">Already a member?</span> <a href="sign-in" data-i18n="signin_link">Sign In</a></div>
+            <p class="terms" data-i18n="terms">By creating an account, you agree to BEK's terms of service and privacy policy.</p>
+        </div>
     </div>
-    <div id="toast" class="toast"></div>
+
+    <div id="toastContainer"></div>
 
     <script type="module">
         import { neon } from 'https://esm.sh/@neondatabase/serverless';
         const sql = neon('postgresql://neondb_owner:npg_fOPmFjJ4K6WN@ep-falling-haze-anzv2jzc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
 
+        // Poly-31 · Prime Mod · 7-Digit (unchanged)
         function hashPassword(input) {
-            let h = 0; input = input.toUpperCase().replace(/[^A-Z]/g, '');
+            let h = 0;
+            input = input.toUpperCase().replace(/[^A-Z]/g, '');
             for (let i = 0; i < input.length; i++) h = (h * 31 + (input.charCodeAt(i) - 64)) % 9999991;
             return h.toString().padStart(7, '0');
         }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
+        // ── Sanitizers ──
+        function sanitizeName(str) { return str.trim().replace(/[<>{}'"]/g, '').substring(0, 80); }
+        function sanitizeUsername(str) { return str.trim().toLowerCase().replace(/[^a-z0-9_]/g, '').substring(0, 32); }
+
+        // ── Password strength ──
+        function calcStrength(pw) {
+            let score = 0;
+            if (pw.length >= 8) score++;
+            if (pw.length >= 12) score++;
+            if (/[A-Z]/.test(pw)) score++;
+            if (/[0-9]/.test(pw)) score++;
+            if (/[^A-Za-z0-9]/.test(pw)) score++;
+            return score;
         }
+
+        const strengthColors = ['#e53e3e','#e53e3e','#f6ad55','#0d9e6e','#0d9e6e'];
+        const strengthLabels = { en: ['','Very Weak','Weak','Good','Strong','Very Strong'], fr: ['','Très faible','Faible','Moyen','Fort','Très fort'], ar: ['','ضعيف جدًا','ضعيف','جيد','قوي','قوي جدًا'] };
+
+        document.getElementById('password').addEventListener('input', function() {
+            const s = calcStrength(this.value);
+            const fill = document.getElementById('strengthFill');
+            const label = document.getElementById('strengthLabel');
+            fill.style.width = (s * 20) + '%';
+            fill.style.background = strengthColors[s] || '#e53e3e';
+            const lang = localStorage.getItem('bek_lang') || 'en';
+            label.textContent = strengthLabels[lang][s] || '';
+            label.style.color = strengthColors[s] || '#e53e3e';
+        });
+
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const pw = document.getElementById('password').value;
+            const err = document.getElementById('confirmError');
+            if (this.value && this.value !== pw) {
+                err.textContent = window.T ? T('pass_mismatch') : 'Passwords do not match';
+                err.style.display = 'block';
+                this.classList.add('invalid'); this.classList.remove('valid');
+            } else if (this.value) {
+                err.style.display = 'none';
+                this.classList.add('valid'); this.classList.remove('invalid');
+            }
+        });
 
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('submitBtn'); btn.disabled = true; btn.textContent = 'Processing...';
-            
-            const name = document.getElementById('name').value.trim();
-            const username = document.getElementById('username').value.trim();
+            let valid = true;
+
+            const rawName = document.getElementById('name').value;
+            const rawUser = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const confirmPw = document.getElementById('confirmPassword').value;
+
+            const name = sanitizeName(rawName);
+            const username = sanitizeUsername(rawUser);
+
+            // Validate name
+            const nameErr = document.getElementById('nameError');
+            if (name.length < 2) {
+                nameErr.textContent = T('name_short') || 'Name must be at least 2 characters';
+                nameErr.style.display = 'block'; valid = false;
+            } else { nameErr.style.display = 'none'; }
+
+            // Validate username
+            const userErr = document.getElementById('usernameError');
+            if (username.length < 3) {
+                userErr.textContent = T('user_short') || 'Username must be at least 3 characters';
+                userErr.style.display = 'block'; valid = false;
+            } else { userErr.style.display = 'none'; }
+
+            // Validate password
+            const passErr = document.getElementById('passError');
+            if (password.length < 6) {
+                passErr.textContent = T('pass_short') || 'Password must be at least 6 characters';
+                passErr.style.display = 'block'; valid = false;
+            } else { passErr.style.display = 'none'; }
+
+            // Validate confirm
+            const confirmErr = document.getElementById('confirmError');
+            if (password !== confirmPw) {
+                confirmErr.textContent = T('pass_mismatch') || 'Passwords do not match';
+                confirmErr.style.display = 'block'; valid = false;
+            }
+
+            if (!valid) return;
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.querySelector('span').textContent = T('processing') || 'Processing...';
 
             try {
-                // Check if username exists
                 const existing = await sql`SELECT id FROM users WHERE username = ${username}`;
                 if (existing.length > 0) {
-                    showToast('Username already taken');
-                    btn.disabled = false; btn.textContent = 'Open Account'; return;
+                    showToast(T('username_taken') || 'Username already taken', 'error');
+                    btn.disabled = false; btn.querySelector('span').textContent = T('btn_submit') || 'Open Account';
+                    return;
                 }
-                
-                // Insert user
-                await sql`INSERT INTO users (name, username, password_hash, balance) VALUES (${name}, ${username}, ${hashPassword(password)}, 0.00)`;
-                showToast('Account Created! Redirecting...');
-                setTimeout(() => window.location.href = 'sign-in', 1500);
+                await sql`INSERT INTO users (name, username, password_hash, balance, status) VALUES (${name}, ${username}, ${hashPassword(password)}, 0.00, 'active')`;
+                showToast(T('success') || 'Account created! Redirecting...', 'success');
+                setTimeout(() => window.location.href = 'sign-in', 1600);
             } catch (error) {
-                showToast('Error creating account. Please try again.');
-                btn.disabled = false; btn.textContent = 'Open Account';
+                showToast(T('error') || 'Error creating account. Please try again.', 'error');
+                btn.disabled = false; btn.querySelector('span').textContent = T('btn_submit') || 'Open Account';
             }
         });
+
+        function showToast(msg, type = 'info') {
+            const c = document.createElement('div');
+            c.className = `toast toast-${type}`;
+            c.textContent = msg;
+            document.getElementById('toastContainer').appendChild(c);
+            setTimeout(() => { c.style.opacity = '0'; c.style.transition = 'opacity 0.25s'; setTimeout(() => c.remove(), 250); }, 4000);
+        }
+
+        function togglePass(fieldId, iconId) {
+            const inp = document.getElementById(fieldId);
+            const icon = document.getElementById(iconId);
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            icon.innerHTML = inp.type === 'text'
+                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>'
+                : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+        }
+        window.togglePass = togglePass;
+    </script>
+    <script>
+    const TRANSLATIONS = {
+        en: { title: 'Join BEK Bank', subtitle: 'Enter your details to open a secure account.', label_name: 'Full Name', label_user: 'Username', label_pass: 'Password', label_confirm: 'Confirm Password', user_hint: 'Letters, numbers, and underscores only. 3–32 chars.', btn_submit: 'Open Account', already: 'Already a member?', signin_link: 'Sign In', terms: "By creating an account, you agree to BEK's terms of service and privacy policy.", name_short: 'Name must be at least 2 characters', user_short: 'Username must be 3–32 characters', pass_short: 'Password must be at least 6 characters', pass_mismatch: 'Passwords do not match', username_taken: 'Username already taken', success: 'Account created! Redirecting...', error: 'Error creating account. Please try again.', processing: 'Processing...' },
+        fr: { title: 'Rejoindre BEK', subtitle: 'Entrez vos informations pour ouvrir un compte sécurisé.', label_name: 'Nom complet', label_user: "Nom d'utilisateur", label_pass: 'Mot de passe', label_confirm: 'Confirmer le mot de passe', user_hint: 'Lettres, chiffres et tirets bas uniquement. 3–32 caractères.', btn_submit: 'Ouvrir un compte', already: 'Déjà membre?', signin_link: 'Se connecter', terms: "En créant un compte, vous acceptez les conditions d'utilisation et la politique de confidentialité de BEK.", name_short: 'Le nom doit comporter au moins 2 caractères', user_short: "Le nom d'utilisateur doit comporter 3 à 32 caractères", pass_short: 'Le mot de passe doit comporter au moins 6 caractères', pass_mismatch: 'Les mots de passe ne correspondent pas', username_taken: "Ce nom d'utilisateur est déjà pris", success: 'Compte créé ! Redirection...', error: 'Erreur lors de la création du compte. Veuillez réessayer.', processing: 'Traitement...' },
+        ar: { title: 'انضم إلى BEK', subtitle: 'أدخل بياناتك لفتح حساب آمن.', label_name: 'الاسم الكامل', label_user: 'اسم المستخدم', label_pass: 'كلمة المرور', label_confirm: 'تأكيد كلمة المرور', user_hint: 'أحرف وأرقام وشرطات سفلية فقط. 3–32 حرفًا.', btn_submit: 'فتح حساب', already: 'هل أنت عضو بالفعل؟', signin_link: 'تسجيل الدخول', terms: 'بإنشاء حساب، فأنت توافق على شروط الخدمة وسياسة الخصوصية الخاصة بـ BEK.', name_short: 'يجب أن يتكون الاسم من حرفين على الأقل', user_short: 'يجب أن يتكون اسم المستخدم من 3 إلى 32 حرفًا', pass_short: 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل', pass_mismatch: 'كلمتا المرور غير متطابقتين', username_taken: 'اسم المستخدم مأخوذ بالفعل', success: 'تم إنشاء الحساب! جارٍ التحويل...', error: 'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.', processing: 'جارٍ المعالجة...' }
+    };
+    let currentLang = localStorage.getItem('bek_lang') || 'en';
+    function T(key) { return (TRANSLATIONS[currentLang] || TRANSLATIONS.en)[key]; }
+    window.T = T;
+    function setLang(lang) {
+        currentLang = lang;
+        localStorage.setItem('bek_lang', lang);
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        document.querySelectorAll('.lang-btn').forEach((b, i) => b.classList.toggle('active', ['en','fr','ar'][i] === lang));
+        const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
+        document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (t[k]) el.innerHTML = t[k]; });
+    }
+    window.setLang = setLang;
+    setLang(currentLang);
     </script>
 </body>
 </html>
