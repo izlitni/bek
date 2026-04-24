@@ -157,7 +157,7 @@
         <div class="form-wrap">
             <div class="form-header">
                 <h1>Sign In</h1>
-                <p>New to BEK? <a href="sign-up.html">Create a free account</a></p>
+                <p>New to BEK? <a href="sign-up">Create a free account</a></p>
             </div>
 
             <form id="loginForm">
@@ -185,10 +185,10 @@
 
             <div class="divider"><span>or</span></div>
             <div class="link-back">
-                Don't have an account? <a href="sign-up.html">Open one free →</a>
+                Don't have an account? <a href="sign-up">Open one free →</a>
             </div>
             <div class="link-back" style="margin-top:12px;">
-                <a href="index.html" style="color: var(--text-muted);">← Back to home</a>
+                <a href="index" style="color: var(--text-muted);">← Back to home</a>
             </div>
 
             <div class="security-note">
@@ -249,7 +249,7 @@
             if (user) {
                 sessionStorage.setItem('bek_user', JSON.stringify(user));
                 showToast('Welcome back, ' + user.name + '!', 'success');
-                setTimeout(() => window.location.href = 'dashboard.html', 600);
+                setTimeout(() => window.location.href = 'dashboard', 600);
             } else {
                 showToast('Invalid username or password', 'error');
                 btn.disabled = false;
